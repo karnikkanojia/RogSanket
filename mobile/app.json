@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "EpiCast",
+    "slug": "epicast",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.epicast.surveillance",
+      "icon": "./assets/icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "package": "com.epicast.surveillance",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
+    },
+    "plugins": [
+      "expo-location",
+      "expo-image-picker",
+      "expo-audio",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow EpiCast to access your microphone for voice input.",
+          "speechRecognitionPermission": "Allow EpiCast to use on-device speech recognition for voice input."
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      ],
+      [
+        "llama.rn",
+        {
+          "enableEntitlements": true,
+          "forceCxx20": true,
+          "enableOpenCL": true
+        }
+      ],
+      "onnxruntime-react-native",
+      "expo-document-picker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "-keep class com.rnllama.** { *; }\n-keep class ai.onnxruntime.** { *; }"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "440768a5-668f-429b-be81-4183e583c9bf"
+      }
+    },
+    "owner": "janeodum"
+  }
+}
