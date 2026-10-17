@@ -106,7 +106,7 @@ epicast/
 │   ├── api/
 │   │   ├── __init__.py
 │   │   └── app.py                  # FastAPI backend
-│   └── frontend/                   # React dashboard (later)
+│   └── frontend/                   # Next.js + shadcn surveillance dashboard
 ├── notebooks/
 │   ├── 01_syndromic_extraction_baseline.ipynb
 │   ├── 02_lora_finetune_syndromic.ipynb
@@ -123,6 +123,22 @@ epicast/
     ├── technical_overview.md        # 3-page writeup for submission
     └── architecture_diagram.png
 ```
+
+## Web dashboard
+
+The frontend is a Bun-managed Next.js application. It uses shadcn-style UI
+primitives and connects to the FastAPI service through `NEXT_PUBLIC_API_URL`.
+
+```bash
+cd frontend
+bun install
+NEXT_PUBLIC_API_URL=http://localhost:8000 bun run dev
+```
+
+Available workflows include the surveillance overview, active alerts,
+encounter intake, and district situation reports. The frontend intentionally
+shows API connection errors instead of substituting fabricated surveillance
+data.
 
 ---
 

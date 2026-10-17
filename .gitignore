@@ -1,18 +1,16 @@
 # Dependencies
 node_modules/
 
-# Expo
-.expo/
-dist/
+# Next.js / frontend
+frontend/.next/
+frontend/out/
+frontend/node_modules/
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
 *.orig.*
-
-# Metro
-.metro-health-check*
 
 # macOS
 .DS_Store
