@@ -1,0 +1,20 @@
+# Large model files used only by the local Mac server — not needed for EAS cloud builds
+models/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Local server artifacts
+*.gguf
+*.onnx
+
+# macOS
+.DS_Store
+
+# Git
+.git/

@@ -1,0 +1,57 @@
+# EpiCast Model Configuration
+
+models:
+  medgemma_4b:
+    model_id: "google/medgemma-4b-it"
+    # Use MedGemma 1.5 4B for improved medical text + imaging
+    model_id_v15: "google/medgemma-1.5-4b-it"
+    quantization: "4bit"  # QLoRA for edge deployment
+    max_new_tokens: 1024
+    temperature: 0.1  # Low temp for structured extraction
+    device_map: "auto"
+    torch_dtype: "bfloat16"
+
+  medgemma_27b:
+    model_id: "google/medgemma-27b-text-it"
+    quantization: "4bit"
+    max_new_tokens: 2048
+    temperature: 0.3  # Slightly higher for report generation
+    device_map: "auto"
+    torch_dtype: "bfloat16"
+
+  medasr:
+    model_id: "google/medasr"
+    device: "cuda"
+    sample_rate: 16000
+
+  medsiglip:
+    model_id: "google/medsiglip"
+    device: "cuda"
+    torch_dtype: "bfloat16"
+
+lora:
+  # LoRA config for syndromic extraction fine-tuning
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  bias: "none"
+  target_modules: "all-linear"
+  task_type: "CAUSAL_LM"
+  modules_to_save:
+    - "lm_head"
+    - "embed_tokens"
+
+training:
+  num_epochs: 3
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  warmup_ratio: 0.1
+  max_seq_length: 2048
+  logging_steps: 10
+  save_steps: 100
+  output_dir: "./checkpoints/syndromic_extraction_lora"
+
+inference:
+  edge_mode: true  # Use 4B quantized only
+  full_mode: false  # Use both 4B + 27B

@@ -1,0 +1,164 @@
+# EpiCast Surveillance Configuration
+# Based on WHO Integrated Disease Surveillance and Response (IDSR) framework
+
+syndromic_categories:
+  acute_watery_diarrhea:
+    name: "Acute Watery Diarrhea"
+    description: "3+ loose/watery stools in 24h, possible cholera signal"
+    icd10_codes: ["A00", "A09"]
+    key_symptoms:
+      - "watery_diarrhea"
+      - "vomiting"
+      - "dehydration"
+      - "rice_water_stool"
+    reportable_conditions:
+      - "cholera"
+    alert_threshold_multiplier: 2.0  # 2x above weekly baseline
+    minimum_cases_for_alert: 3
+
+  acute_bloody_diarrhea:
+    name: "Acute Bloody Diarrhea"
+    description: "Diarrhea with visible blood, dysentery signal"
+    icd10_codes: ["A03", "A06"]
+    key_symptoms:
+      - "bloody_diarrhea"
+      - "abdominal_cramps"
+      - "tenesmus"
+      - "fever"
+    reportable_conditions:
+      - "shigellosis"
+      - "amebiasis"
+    alert_threshold_multiplier: 2.0
+    minimum_cases_for_alert: 3
+
+  acute_febrile_illness:
+    name: "Acute Febrile Illness"
+    description: "Fever ≥38°C with no obvious cause, malaria/dengue/typhoid signal"
+    icd10_codes: ["B50", "A90", "A01"]
+    key_symptoms:
+      - "high_fever"
+      - "chills"
+      - "headache"
+      - "myalgia"
+      - "joint_pain"
+      - "rash"
+    reportable_conditions:
+      - "malaria"
+      - "dengue"
+      - "typhoid"
+      - "chikungunya"
+    alert_threshold_multiplier: 1.5
+    minimum_cases_for_alert: 5
+
+  acute_respiratory_infection:
+    name: "Acute Respiratory Infection"
+    description: "Cough, fever, difficulty breathing — influenza/COVID/pneumonia signal"
+    icd10_codes: ["J06", "J18", "J09", "U07"]
+    key_symptoms:
+      - "cough"
+      - "fever"
+      - "dyspnea"
+      - "sore_throat"
+      - "chest_pain"
+      - "anosmia"
+    reportable_conditions:
+      - "influenza"
+      - "covid19"
+      - "pneumonia"
+      - "SARI"
+    alert_threshold_multiplier: 1.5
+    minimum_cases_for_alert: 5
+
+  acute_neurological_syndrome:
+    name: "Acute Neurological Syndrome"
+    description: "Fever + neck stiffness/altered consciousness — meningitis signal"
+    icd10_codes: ["G00", "G03", "A39"]
+    key_symptoms:
+      - "neck_stiffness"
+      - "severe_headache"
+      - "altered_consciousness"
+      - "seizures"
+      - "photophobia"
+      - "fever"
+    reportable_conditions:
+      - "meningitis"
+      - "encephalitis"
+    alert_threshold_multiplier: 1.0  # Any case is reportable
+    minimum_cases_for_alert: 1
+
+  acute_rash_fever:
+    name: "Acute Rash with Fever"
+    description: "Fever + generalized rash — measles/chickenpox signal"
+    icd10_codes: ["B05", "B01", "B06"]
+    key_symptoms:
+      - "maculopapular_rash"
+      - "fever"
+      - "cough"
+      - "conjunctivitis"
+      - "coryza"
+      - "vesicular_rash"
+    reportable_conditions:
+      - "measles"
+      - "rubella"
+      - "chickenpox"
+    alert_threshold_multiplier: 1.0
+    minimum_cases_for_alert: 1
+
+  acute_hemorrhagic_fever:
+    name: "Acute Hemorrhagic Fever"
+    description: "Fever + unexplained bleeding — Ebola/Marburg/DHF signal"
+    icd10_codes: ["A98", "A91"]
+    key_symptoms:
+      - "fever"
+      - "unexplained_bleeding"
+      - "petechiae"
+      - "ecchymosis"
+      - "hematemesis"
+      - "melena"
+    reportable_conditions:
+      - "ebola"
+      - "marburg"
+      - "dengue_hemorrhagic_fever"
+      - "crimean_congo_hf"
+    alert_threshold_multiplier: 1.0
+    minimum_cases_for_alert: 1
+
+  unexplained_cluster:
+    name: "Unexplained Cluster of Illness"
+    description: "≥2 cases of similar unexplained illness linked in time/place"
+    icd10_codes: ["R69"]
+    key_symptoms:
+      - "unexplained_illness"
+      - "multiple_similar_cases"
+    reportable_conditions:
+      - "unknown_etiology"
+    alert_threshold_multiplier: 1.0
+    minimum_cases_for_alert: 2
+
+# Anomaly detection parameters
+anomaly_detection:
+  method: "cusum"  # Cumulative Sum control chart
+  baseline_window_weeks: 8
+  sensitivity: 1.5  # k parameter for CUSUM
+  decision_interval: 5.0  # h parameter for CUSUM
+  poisson_alpha: 0.01  # significance level for Poisson test
+
+# Alert levels
+alert_levels:
+  watch:
+    description: "Signal above expected, monitor closely"
+    color: "yellow"
+    action: "Increase reporting frequency"
+  warning:
+    description: "Significant increase, investigation needed"
+    color: "orange"
+    action: "Deploy investigation team"
+  emergency:
+    description: "Confirmed outbreak or critical threshold exceeded"
+    color: "red"
+    action: "Activate emergency response"
+
+# Geographic configuration
+geographic:
+  default_admin_level: "district"
+  coordinate_precision: 4  # decimal places
