@@ -1,0 +1,138 @@
+{
+  "timestamp": "2026-10-18T18:56:23.762169",
+  "total_encounters": 24,
+  "syndrome_distribution": {
+    "acute_respiratory_infection": 24
+  },
+  "districts": [
+    "TEST \u00b7 North"
+  ],
+  "active_alerts": {
+    "total": 1,
+    "emergency": 1,
+    "warning": 0,
+    "watch": 0
+  },
+  "recent_encounters": [
+    {
+      "id": "test-21-0",
+      "time": "2026-09-27T18:56:23.643886",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-21-1",
+      "time": "2026-09-27T18:56:23.643989",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-14-0",
+      "time": "2026-10-04T18:56:23.644135",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-14-1",
+      "time": "2026-10-04T18:56:23.644233",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-7-0",
+      "time": "2026-10-11T18:56:23.644331",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-7-1",
+      "time": "2026-10-11T18:56:23.644423",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-0",
+      "time": "2026-10-18T18:56:23.644519",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-1",
+      "time": "2026-10-18T18:56:23.644651",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-2",
+      "time": "2026-10-18T18:56:23.644742",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-3",
+      "time": "2026-10-18T18:56:23.644841",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-4",
+      "time": "2026-10-18T18:56:23.644930",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-5",
+      "time": "2026-10-18T18:56:23.645020",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-6",
+      "time": "2026-10-18T18:56:23.645161",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-7",
+      "time": "2026-10-18T18:56:23.645296",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-8",
+      "time": "2026-10-18T18:56:23.645417",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-9",
+      "time": "2026-10-18T18:56:23.645554",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-10",
+      "time": "2026-10-18T18:56:23.645670",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-11",
+      "time": "2026-10-18T18:56:23.645845",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-12",
+      "time": "2026-10-18T18:56:23.645990",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    },
+    {
+      "id": "test-0-13",
+      "time": "2026-10-18T18:56:23.646111",
+      "district": "TEST \u00b7 North",
+      "syndrome": "acute_respiratory_infection"
+    }
+  ]
+}

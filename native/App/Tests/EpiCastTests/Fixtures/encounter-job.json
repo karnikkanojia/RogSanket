@@ -1,0 +1,62 @@
+{
+  "id": "64cd45bb-7eea-4f17-9049-d626e7025617",
+  "kind": "multimodal",
+  "status": "succeeded",
+  "result": {
+    "text": {
+      "symptoms": [
+        "fever",
+        "cough"
+      ],
+      "symptom_onset_days": null,
+      "symptom_duration_days": null,
+      "syndrome_category": "acute_respiratory_infection",
+      "secondary_syndromes": [],
+      "severity": "moderate",
+      "age_group": "adult",
+      "sex": null,
+      "icd10_codes": [
+        "R05"
+      ],
+      "reportable_conditions_flagged": [],
+      "travel_history": null,
+      "contact_history": null,
+      "cluster_indicator": false,
+      "confidence_score": 0.8
+    },
+    "encounter": {
+      "encounter_id": "7ec3a05c-7e8c-4c3b-8e7d-44e909004488",
+      "timestamp": "2026-10-18T19:04:39.911192",
+      "syndromic_signal": {
+        "symptoms": [
+          "fever",
+          "cough"
+        ],
+        "symptom_onset_days": null,
+        "symptom_duration_days": null,
+        "syndrome_category": "acute_respiratory_infection",
+        "secondary_syndromes": [],
+        "severity": "moderate",
+        "age_group": "adult",
+        "sex": null,
+        "icd10_codes": [
+          "R05"
+        ],
+        "reportable_conditions_flagged": [],
+        "travel_history": null,
+        "contact_history": null,
+        "cluster_indicator": false,
+        "confidence_score": 0.8
+      },
+      "total_encounters": 1,
+      "provenance": {
+        "model": "synthetic-contract-fixture",
+        "location": "local",
+        "revision": "test-only",
+        "backend": "test"
+      }
+    }
+  },
+  "error": null,
+  "created": "2026-10-18T13:34:39.910518+00:00"
+}

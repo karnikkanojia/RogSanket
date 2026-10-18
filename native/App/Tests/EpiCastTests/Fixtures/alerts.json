@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-10-18T18:56:23.775055",
+  "total_alerts": 1,
+  "by_level": {
+    "emergency": 1,
+    "warning": 0,
+    "watch": 0
+  },
+  "alerts": [
+    {
+      "alert_id": "b40c7c26-30e4-51ec-8ee0-ae9a8e1e0753",
+      "alert_level": "emergency",
+      "syndrome_category": "acute_respiratory_infection",
+      "district": "TEST \u00b7 North",
+      "case_count_current_week": 14,
+      "case_count_baseline": 2.0,
+      "ratio_to_baseline": 7.0,
+      "trend": "stable",
+      "weeks_above_threshold": 1,
+      "situation_summary": "",
+      "recommended_actions": [],
+      "evidence_summary": "",
+      "forecast_next_week": null,
+      "forecast_confidence_interval": null,
+      "timestamp": "2026-10-18T18:56:23.772350"
+    }
+  ]
+}

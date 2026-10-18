@@ -10,8 +10,12 @@
 - Next.js TypeScript check and production build pass.
 - Swift inference worker builds against pinned MLX Swift dependencies and returns
   the expected missing-artifact JSON protocol error.
-- SwiftUI development client builds with media import, microphone dictation,
-  camera capture, transcript review, intake, dashboard, alerts and report jobs.
+- SwiftUI ports all four browser workflows with a typed API client, native sidebar,
+  syndrome chart, encounter table, alert evidence/filtering, intake and result review,
+  transcript review, media import/capture, cancellable jobs, report provenance and
+  copy/save. Twelve Swift tests pass. Debug/release builds and ad-hoc bundle signature
+  verification pass; the app was exercised against an isolated real FastAPI service.
+  See `docs/native-ui.md` for the parity matrix and validation limits.
 - Real four-bit MedGemma 1.5 text inference runs through MLX on the M1 GPU.
   After correcting duplicated BOS tokenization, two synthetic extractions returned
   schema-valid JSON: 18.34 seconds cold, 7.09 seconds warm, approximately 23
@@ -49,8 +53,8 @@ The following remain unverified: exact model-output parity, including vision;
 clinical extraction quality; ASR critical-term error; HeAR/classifier compatibility;
 Core ML export/provider profiling; full offline network audit; 100-request
 performance evaluation; 30-minute memory soak; 512-token report latency; native
-worker model parity; live camera/microphone hardware behavior; native UI visual
-review; Developer ID signing, notarization and packaged backend supervision.
+worker model parity; live camera/microphone hardware behavior; Developer ID
+signing, notarization and packaged backend supervision.
 
 Core ML promotion and transfer of surveillance/database ownership to Swift are
 intentionally withheld until their prerequisite parity gates pass. Python remains

@@ -8,10 +8,12 @@
 
 ## Current implementation: Apple Silicon
 
-The canonical application is Next.js plus FastAPI, with a process-isolated MLX
-worker and SQLite. The development M1 has **8 GB unified memory**. It supports a
+The application now has a complete SwiftUI counterpart to its four Next.js
+workflows. Both clients use canonical FastAPI, a process-isolated MLX worker and
+SQLite. See [native UI setup and parity](docs/native-ui.md). The development M1 has **8 GB unified memory**. It supports a
 validated four-bit 4B artifact; local 27B is unsupported. Remote 27B is optional.
-A SwiftUI development client and experimental MLX Swift worker are included.
+The native UI can run without Next.js. The MLX Swift inference worker remains
+experimental.
 
 Start with [the Apple Silicon runtime guide](docs/apple-silicon.md). It documents
 `uv` setup, artifact checksums and reference gates, offline operation, API jobs,

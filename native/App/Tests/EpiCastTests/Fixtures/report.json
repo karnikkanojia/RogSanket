@@ -1,0 +1,17 @@
+{
+  "id": "test-report",
+  "status": "succeeded",
+  "result": {
+    "district": "TEST \u00b7 North",
+    "report_time": "2026-10-18T18:56:23.789369",
+    "report": "Synthetic contract example. 14 respiratory signals; recommendations require review.",
+    "draft": true,
+    "provenance": {
+      "model": "test-only",
+      "revision": "test-revision",
+      "location": "local",
+      "backend": "test"
+    },
+    "fallback_reason": null
+  }
+}

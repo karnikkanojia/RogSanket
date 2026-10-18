@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "initialized": false,
+  "total_encounters": 24,
+  "runtime": {
+    "queue_depth": 0,
+    "queue_capacity": 8,
+    "active": false,
+    "worker_loaded": false,
+    "completed": 0,
+    "last_error": null,
+    "successful_operations": []
+  },
+  "memory": {
+    "total_bytes": 8589934592,
+    "available_bytes": 1641758720,
+    "rss_bytes": 200589312,
+    "swap_used_bytes": 1293877248,
+    "pressure": "warning"
+  },
+  "artifacts_present": {
+    "text": false,
+    "image": false,
+    "transcription": false,
+    "cough": false
+  },
+  "release_validated": false,
+  "readiness_note": "Artifact presence is not validation. Execution verifies checksums and parity gates."
+}

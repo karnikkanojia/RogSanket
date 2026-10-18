@@ -2,4 +2,5 @@
 import PackageDescription
 let package = Package(name: "EpiCast", platforms: [.macOS(.v14)],
     products: [.executable(name: "EpiCast", targets: ["EpiCast"])],
-    targets: [.executableTarget(name: "EpiCast")])
+    targets: [.executableTarget(name: "EpiCast"),
+        .testTarget(name: "EpiCastTests", dependencies: ["EpiCast"], resources: [.copy("Fixtures")])])

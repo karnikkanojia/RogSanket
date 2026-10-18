@@ -154,7 +154,9 @@ swift run --package-path native/App EpiCast
 swift build --package-path native/Worker -c release -j 2
 ```
 
-The SwiftUI executable uses the canonical API for intake, transcript review,
+The SwiftUI app ports all four Next.js workflows with native navigation, charts,
+encounter tables, alert evidence, report export and connection settings. See
+[native UI setup and parity](native-ui.md). It uses the canonical API for intake, transcript review,
 media imports, microphone dictation, camera photos, dashboard, alerts, cancellable jobs, and reports. FastAPI remains
 the only database writer. Start the API separately. This is a development
 executable. Use `bash native/App/bundle.sh` to create an ad-hoc signed app bundle
