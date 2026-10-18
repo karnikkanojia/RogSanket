@@ -185,8 +185,10 @@ bun run --cwd frontend build
 
 Run evaluations against a **separate** SQLite database: benchmarks submit real
 structured test encounters. The frozen 50-example fixture covers all eight
-syndromes, but is synthetic and inherited from the original dataset. It is not
-clinical validation. Add independently reviewed negation, missing-detail,
+syndromes. It reproduces exactly from the original template generator with seed
+42. Its labels contain contradictions and unsupported history; use it only for
+schema/runtime checks, never clinical accuracy gates. See
+`data/evaluation_frozen.metadata.json`. Add independently reviewed negation, missing-detail,
 cluster, severe-presentation, dictation, photo, and cough reference fixtures
 before release. Evaluation failures score zero across all metrics.
 

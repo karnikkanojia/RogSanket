@@ -35,6 +35,13 @@ async def probe(args):
         {'role': 'user', 'content': 'A 35-year-old woman has fever and cough for three days. No diarrhea, rash, bleeding, travel, or sick contacts.'}]
     requests = [('cold_extraction', messages, [], args.max_tokens)]
     requests.extend((f'warm_extraction_{i + 1}', messages, [], args.max_tokens) for i in range(args.repetitions))
+    if args.fixtures:
+        fixtures = [json.loads(line) for line in Path(args.fixtures).read_text().splitlines() if line.strip()]
+        if not fixtures:
+            raise ValueError('Fixture file is empty')
+        requests = [(f'fixture_extraction_{i + 1}', [messages[0],
+            {'role': 'user', 'content': item['narrative']}], [], args.max_tokens)
+            for i, item in enumerate(fixtures)]
     image_bytes = Path(args.image).read_bytes() if args.image else None
     if args.synthetic_image:
         import io
@@ -97,6 +104,7 @@ def main():
     vision = parser.add_mutually_exclusive_group()
     vision.add_argument('--image', help='Optional nonclinical image for a vision smoke test')
     vision.add_argument('--synthetic-image', action='store_true', help='Probe a red square and blue circle')
+    parser.add_argument('--fixtures', help='Synthetic JSONL narratives; checks schema only, not label accuracy')
     parser.add_argument('--max-tokens', type=int, default=512)
     parser.add_argument('--repetitions', type=int, default=3)
     args = parser.parse_args()

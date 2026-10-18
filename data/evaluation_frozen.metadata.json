@@ -1,0 +1,24 @@
+{
+  "dataset": "evaluation_frozen.jsonl",
+  "sha256": "a9ad26e6cbaf8f6a4e8c6dd9f8f3e2f7ce08f0017485743b41f8349b73e8efda",
+  "examples": 50,
+  "source": "src/data/synthetic_generator.py:generate_training_dataset",
+  "seed": 42,
+  "reproduction_verified": true,
+  "clinical_reviewed": false,
+  "allowed_use": [
+    "schema regression",
+    "runtime stress",
+    "processor parity"
+  ],
+  "not_valid_for": [
+    "clinical accuracy gates",
+    "training without label audit"
+  ],
+  "known_defects": [
+    "Normalized symptom labels sampled independently of narrative",
+    "Travel history added to labels without adding to narrative",
+    "Contact labels sampled independently of narrative context",
+    "Exam findings and severity selected independently"
+  ]
+}

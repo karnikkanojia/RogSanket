@@ -1,0 +1,33 @@
+{
+  "experimental": true,
+  "release_validated": false,
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "memory_scope": "Scheduler RSS; worker RSS and MLX allocations are in provenance",
+  "versions": {
+    "mlx": "0.32.4",
+    "mlx-vlm": "0.7.8",
+    "transformers": "5.20.1"
+  },
+  "runs": [
+    {
+      "name": "fixture_extraction_1",
+      "elapsed_seconds": 14.771595582948066,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 2059763712,
+        "rss_bytes": 44204032,
+        "swap_used_bytes": 2620391424,
+        "pressure": "normal"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 3756556288,
+        "rss_bytes": 14516224,
+        "swap_used_bytes": 3295936512,
+        "pressure": "normal"
+      },
+      "error": "Inference paused: insufficient unified-memory headroom",
+      "error_type": "MemoryError"
+    }
+  ]
+}

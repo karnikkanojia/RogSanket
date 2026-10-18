@@ -3,7 +3,7 @@
 ## Verified on October 18, 2026
 
 - Development hardware: Apple M1, 8 GB unified memory, native ARM64 Python 3.14.
-- 22 model-free runtime tests pass: SQLite durability/privacy, bounded queue, process
+- 26 model-free tests pass: SQLite durability/privacy, bounded queue, process
   cancellation, timeout/crash recovery, schema retry, aggregate-only remote
   reporting, local fallback, offline routing, report cache, stable alert IDs,
   artifact checksums, and explicit missing-model failures.
@@ -26,6 +26,17 @@
   active memory guard. Full multimodal M1 support is not certified.
 - Apple runtime dependencies are locked. Swift worker dependencies are pinned
   and captured in `native/Worker/Package.resolved`.
+
+## Remote deployment preparation
+
+`docs/runpod.md` documents the candidate 80 GB GPU setup, authenticated API,
+secret handling and sequential original-4B/27B verification.
+`scripts/probe_remote.py` checks transport using synthetic aggregates; no paid
+Pod has been started and no remote model has been verified.
+
+The inherited synthetic evaluation labels contain contradictions. Row 25 labels
+an alert patient with mild dehydration as critical and adds unsupported history.
+Clinical label review is required before accuracy scores can gate promotion.
 
 ## Release gates still open
 
@@ -59,3 +70,12 @@ against their original base on suitable hardware before conversion.
 SQLite is a new durable schema. Back it up before any future schema migration.
 Runtime artifacts and database files are ignored by Git. Original classifier
 weights are retained but never unpickled or presented as validated inference.
+
+## Latest local sweep
+
+The 50-narrative experimental sweep stopped on its first request after 14.77
+seconds: the active guard detected insufficient unified-memory headroom. No
+extraction completed. This is a failed admission/runtime measurement, not a
+quality result or sustained-load pass. Evidence is in
+`docs/benchmarks/2026-10-18-m1-fixture-sweep.json`. The synthetic dataset reproduces
+exactly from the inherited generator with seed 42; metadata records its defects.

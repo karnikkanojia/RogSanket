@@ -185,7 +185,7 @@ to extract structured epidemiological signals from free-text clinical narratives
   }
   ```
 
-**Training Data**: We generate ~2,000 synthetic clinical encounter → structured extraction pairs
+**Training Data**: The original generator can produce ~2,000 synthetic clinical encounter → structured extraction pairs. Its labels can contradict narratives and include unsupported history. Audit and repair the generator and labels before training or clinical evaluation. The intended categories are
 covering WHO's priority syndromic surveillance categories:
 - Acute watery diarrhea (cholera signal)
 - Acute bloody diarrhea (dysentery)
