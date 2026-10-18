@@ -1,4 +1,4 @@
-"""Migration guards shared by Python rollback and the native server."""
+"""Prompt and subprocess guards shared by workers and the native server."""
 import json
 import os
 from pathlib import Path
@@ -7,7 +7,6 @@ import sys
 import time
 
 import pytest
-from src.runtime.storage import Store
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,16 +16,6 @@ def test_shared_prompt_contract():
     from src.agents.surveillance_agent import SITUATION_REPORT_PROMPT
     prompts = json.loads((ROOT/'native/Server/Sources/ServerCore/Resources/prompts.json').read_text())
     assert prompts == {'extraction': SYSTEM_PROMPT, 'report': SITUATION_REPORT_PROMPT}
-
-
-def test_database_has_one_writer(tmp_path):
-    path = str(tmp_path/'test.sqlite3')
-    store = Store(path)
-    with pytest.raises(RuntimeError, match='Another server owns'):
-        Store(path)
-    store.close()
-    replacement = Store(path)
-    replacement.close()
 
 
 def test_worker_exits_after_parent_death(tmp_path):

@@ -49,9 +49,7 @@ dill==0.4.1
     #   datasets
     #   multiprocess
 fastapi==0.143.3
-    # via
-    #   -r requirements.txt
-    #   mlx-vlm
+    # via mlx-vlm
 filelock==4.2.2
     # via
     #   datasets
@@ -307,9 +305,7 @@ typing-inspection==0.4.4
 urllib3==2.8.0
     # via requests
 uvicorn==0.54.0
-    # via
-    #   -r requirements.txt
-    #   mlx-vlm
+    # via mlx-vlm
 websockets==17.2
     # via mlx-vlm
 xxhash==4.0.1

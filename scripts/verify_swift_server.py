@@ -1,11 +1,12 @@
-"""Verify a built Swift server against FastAPI and isolated synthetic worker fixtures.
+"""Verify a built Swift server using isolated SQLite and synthetic worker fixtures.
 
 Never accesses the application's database or loads clinical models. Requires a
 built native server supplied by --server-bin. Output is migration evidence only.
 """
 import argparse
+import fcntl
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
@@ -20,31 +21,10 @@ import threading
 import time
 
 import httpx
-from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from src.api.app import app
 from src.data.syndromic_schema import ClinicalEncounter
-from src.runtime.storage import Store
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def normalize(value):
-    if isinstance(value, list):
-        result = [normalize(item) for item in value]
-        if result and isinstance(result[0], dict) and 'alert_id' in result[0]:
-            result.sort(key=lambda item: item['alert_id'])
-        if result and isinstance(result[0], dict) and 'resource' in result[0]:
-            result.sort(key=lambda item: json.dumps(item, sort_keys=True))
-        return result
-    if isinstance(value, dict):
-        ignored = {'timestamp', 'scan_time', 'identifiedDateTime'}
-        if value.get('resourceType') in ('Bundle', 'Composition', 'Observation'):
-            ignored |= {'id', 'date'}
-        if set(value) == {'start', 'end'}:
-            return {'period_days': 7}
-        return {key: normalize(item) for key, item in value.items() if key not in ignored}
-    return value
 
 
 def main(args):
@@ -57,18 +37,18 @@ def main(args):
     with tempfile.TemporaryDirectory(prefix='epicast-server-check-') as directory:
         directory = Path(directory)
         database = directory / 'swift.sqlite3'
-        reference = directory / 'python.sqlite3'
         cases = json.loads((ROOT/'native/Server/Tests/ServerCoreTests/Fixtures/surveillance.json').read_text())
         seed = cases[0]
         delta = datetime.now() - datetime.fromisoformat(seed['now'])
-        store = Store(str(database))
-        for record in seed['records']:
-            record = dict(record, timestamp=(datetime.fromisoformat(record['timestamp'])+delta).isoformat())
-            store.add_encounter(ClinicalEncounter.model_validate(record), {'model': 'test-only'})
-        initial_count = store.total_encounters
-        store.close()
-        with sqlite3.connect(database) as source, sqlite3.connect(reference) as target:
-            source.backup(target)
+        with sqlite3.connect(database) as connection:
+            connection.execute('CREATE TABLE encounters (id TEXT PRIMARY KEY, record TEXT NOT NULL, provenance TEXT NOT NULL)')
+            for record in seed['records']:
+                record = dict(record, timestamp=(datetime.fromisoformat(record['timestamp'])+delta).isoformat())
+                encounter = ClinicalEncounter.model_validate(record).model_copy(update={
+                    'narrative_text': '', 'image_path': None, 'location_lat': None, 'location_lon': None})
+                connection.execute('INSERT INTO encounters VALUES (?, ?, ?)',
+                                   (encounter.encounter_id, encounter.model_dump_json(), '{"model":"test-only"}'))
+        initial_count = len(seed['records'])
         launcher = directory / 'python-fixture'
         fixture = ROOT/'native/Server/Tests/ServerCoreTests/Fixtures/api_worker.py'
         launcher.write_text('#!/bin/sh\nexec '+shlex.quote(sys.executable)+' '+shlex.quote(str(fixture))+'\n')
@@ -94,28 +74,23 @@ def main(args):
                 else:
                     raise RuntimeError('Swift server did not start')
                 check('health and truthful readiness', client.get('/health').json()['release_validated'] is False)
-                try:
-                    duplicate = Store(str(database))
-                except RuntimeError:
-                    check('Python cannot acquire Swift database lease', True)
-                else:
-                    duplicate.close()
-                    check('Python cannot acquire Swift database lease', False)
-                previous = os.environ.get('EPICAST_DATABASE')
-                os.environ['EPICAST_DATABASE'] = str(reference)
-                try:
-                    with TestClient(app) as python:
-                        for route in ('/dashboard', '/alerts', '/surveillance/scan', '/surveillance/scan?district=TEST%20North', '/fhir/report?district=TEST%20North'):
-                            left, right = client.get(route), python.get(route)
-                            if normalize(left.json()) != normalize(right.json()):
-                                import difflib
-                                print('\n'.join(difflib.unified_diff(json.dumps(normalize(right.json()),indent=2,sort_keys=True).splitlines(),json.dumps(normalize(left.json()),indent=2,sort_keys=True).splitlines(),fromfile='python',tofile='swift')),flush=True)
-                            check('API parity '+route, left.status_code == right.status_code == 200 and normalize(left.json()) == normalize(right.json()))
-                finally:
-                    if previous is None:
-                        os.environ.pop('EPICAST_DATABASE', None)
+                with open(str(database.resolve())+'.writer.lock', 'a') as lease:
+                    try:
+                        fcntl.flock(lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    except BlockingIOError:
+                        check('exclusive native database lease', True)
                     else:
-                        os.environ['EPICAST_DATABASE'] = previous
+                        fcntl.flock(lease.fileno(), fcntl.LOCK_UN)
+                        check('exclusive native database lease', False)
+                dashboard = client.get('/dashboard')
+                check('seeded dashboard count', dashboard.status_code == 200 and dashboard.json()['total_encounters'] == initial_count)
+                alerts = client.get('/alerts')
+                check('seeded alerts', alerts.status_code == 200 and len(alerts.json()['alerts']) > 0)
+                for route in ('/surveillance/scan', '/surveillance/scan?district=TEST%20North'):
+                    response = client.get(route)
+                    check('seeded scan '+route, response.status_code == 200 and isinstance(response.json(), dict))
+                fhir = client.get('/fhir/report?district=TEST%20North')
+                check('seeded FHIR bundle', fhir.status_code == 200 and fhir.json()['resourceType'] == 'Bundle' and len(fhir.json()['entry']) > 0)
                 for method, route, payload, expected in (
                     ('POST', '/encounter', {'narrative':' '}, 422),
                     ('POST', '/encounter', {'narrative':'x'*16001}, 422),
@@ -181,10 +156,9 @@ def main(args):
                 process.kill(); process.wait()
             log.close()
         check('graceful server exit',process.returncode in (0,-15))
-        reopened=Store(str(database))
-        check('Python rollback reads native encounters',reopened.total_encounters==initial_count+2)
-        check('Python rollback reads native report job',reopened.get_job(report['id'])['status']=='succeeded')
-        reopened.close()
+        with sqlite3.connect(database) as connection:
+            check('native encounters durable after exit', connection.execute('SELECT count(*) FROM encounters').fetchone()[0] == initial_count+2)
+            check('native report job durable after exit', connection.execute('SELECT status FROM jobs WHERE id=?', (report['id'],)).fetchone()[0] == 'succeeded')
 
         @contextmanager
         def stage(**overrides):

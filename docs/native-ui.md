@@ -105,6 +105,5 @@ until their artifacts pass validation. Live microphone/camera capture, calibrate
 clinical quality, notarization and automated backend supervision remain separate
 validation/distribution work.
 
-The default application server is now Swift. The retained FastAPI implementation
-is a migration reference and rollback option. Both expose the same application
-API; see [Swift server migration](swift-server.md).
+The application server is Swift. The Python HTTP server has been removed after
+API parity checks; Python inference workers remain. See [Swift server migration](swift-server.md).

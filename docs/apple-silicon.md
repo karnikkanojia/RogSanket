@@ -55,8 +55,8 @@ Configuration:
 Bind to localhost by default. LAN deployment requires authentication and TLS at
 the deployment boundary. The RunPod handler is a transport adapter, configured
 with `EPICAST_API_URL`. It no longer loads its own duplicate model stack.
-The compatibility launcher starts the Swift API on port 8000. FastAPI remains an
-explicit rollback/reference option. See [Swift server migration](swift-server.md).
+The compatibility launcher starts the Swift API on port 8000. The Python HTTP
+server has been removed; Python remains the isolated inference worker. See [Swift server migration](swift-server.md).
 
 ## Provisioning and reference evidence
 

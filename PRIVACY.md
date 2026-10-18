@@ -14,9 +14,9 @@ The Swift server stores structured signals, district/facility, encounter time,
 model provenance, report jobs, and cached draft reports in SQLite. Raw narratives,
 patient coordinates, audio, and images are not persisted by this service.
 Temporary image files created by the experimental Swift worker are removed after
-the task. Crashes may require operator cleanup of OS temporary storage. A shared writer lease prevents Swift and the retained FastAPI rollback service
-from writing the same database simultaneously. Inputs
-remain in process memory while requests execute. Client-selected originals remain
+the task. Crashes may require operator cleanup of OS temporary storage. An
+exclusive writer lease prevents concurrent Swift server instances from writing
+the same database simultaneously. Inputs remain in process memory while requests execute. Client-selected originals remain
 under the user's control.
 
 SQLite is not encrypted by the application. Use OS disk encryption and restricted

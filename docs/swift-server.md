@@ -20,6 +20,9 @@ Inference interface
 
 The inference protocol is separate from application logic. A future HTTP model
 service can implement that interface without changing surveillance or SwiftUI.
+MLX-VLM still transitively installs FastAPI and Uvicorn; EpiCast no longer imports
+or starts either package. They are not direct application dependencies.
+
 No such remote modality service is enabled by this migration. Remote 27B reporting
 remains an optional aggregate-only path.
 
@@ -106,8 +109,8 @@ an older cached report. Generated recommendations remain drafts.
 ## SQLite ownership and rollback
 
 The table schema is unchanged. There is no data conversion or table deletion.
-Both servers now acquire an exclusive `<database>.writer.lock` lease before
-opening SQLite or recovering jobs. Stop the active server before switching. Do
+The Swift server acquires an exclusive `<database>.writer.lock` lease before
+opening SQLite or recovering jobs. Stop the active server before switching builds. Do
 not remove the lock file to bypass ownership: an abandoned lock is released by
 the OS, and deleting a live lock file could allow two owners.
 
@@ -129,18 +132,20 @@ with sqlite3.connect('data/epicast.sqlite3') as source:
 PY
 ```
 
-Start the Swift server with `./run_local.sh`. To roll back, stop it and run:
+Start the Swift server with `./run_local.sh`. The Python HTTP server, application
+service, job manager and SQLite store have been removed. Python inference workers,
+evaluation tools and reference analytics remain. `epicast_local_server.py` remains
+a compatibility launcher for Swift.
 
-```sh
-EPICAST_ARTIFACT=/absolute/path/to/verified-4b .venv-apple/bin/python -m src.api.app
-```
+For rollback, stop the service and restore a previously pinned native build and
+its compatible database backup. The former Python server exists in Git commit
+`56751dc`; use a separate checkout and its own dependencies if historical recovery
+is necessary. Never start it against a database already owned by another server.
 
-FastAPI remains a reference/rollback service. `epicast_local_server.py` now launches
-Swift for compatibility. No live production database was modified by migration
-tests. New native records and completed jobs were successfully read by Python
-using the unchanged schema. Both stores exclude raw narratives, coordinates and
-image paths from persisted encounter records. SQLite remains unencrypted by the
-application.
+No production database was modified by migration tests. Before removal, Python
+successfully read native encounters and jobs using the unchanged schema. Native
+storage excludes raw narratives, coordinates and image paths from persisted
+encounters. SQLite remains unencrypted by the application.
 
 ## Verification
 
@@ -166,13 +171,17 @@ including the executable SHA256 and observed health latency, is recorded in
 `docs/benchmarks/2026-10-18-swift-server.json`.
 
 The HTTP verifier uses isolated temporary databases and explicitly injected
-synthetic model workers. It compares dashboard, alert, scan and FHIR results to
-FastAPI, normalizing generated timestamps, random FHIR IDs and unordered FHIR
-entries. It tests media routes, job status/SSE, cancellation/recovery, privacy,
-remote aggregate routing and fallback, missing-artifact errors from the real
-Python worker, and Python rollback reads. It never opens the application's normal
-database. Successful synthetic inference is not evidence that a clinical model
-is provisioned or validated.
+synthetic model workers. It checks seeded dashboard counts, alerts, scans and FHIR
+structure, media routes, job status/SSE, cancellation/recovery, privacy, remote
+aggregate routing and fallback, missing-artifact errors from the real Python
+worker, and SQLite durability after exit. Native unit tests preserve the frozen
+Python surveillance/statistics parity fixtures. The original 38-check migration
+record above includes live FastAPI comparisons performed before its removal.
+Post-removal verification passed 18 native tests, 17 Python worker tests and 38
+HTTP checks; see `docs/benchmarks/2026-10-18-python-server-removal.json`. One
+native test run stalled; its rerun passed. The stall cause remains unconfirmed.
+The verifier never opens the application's normal database. Successful synthetic
+inference is not evidence that a clinical model is provisioned or validated.
 
 Model parity, clinical quality, the 100-request workload and 30-minute soak remain
 separate release gates. The server port does not establish faster model decoding,

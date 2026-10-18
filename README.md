@@ -105,15 +105,14 @@ epicast/
 │   ├── Server/                   # Swift application server and SQLite owner
 │   └── Worker/                   # Experimental MLX Swift inference worker
 ├── src/
-│   ├── api/                      # FastAPI rollback/reference service
-│   ├── runtime/                  # Scheduler, workers, SQLite and application logic
-│   ├── agents/                   # Prompts, surveillance and alert logic
+│   ├── runtime/                  # Inference workers and diagnostic scheduler
+│   ├── agents/                   # Prompts, image triage and reference analytics
 │   ├── models/                   # Model loaders and research utilities
 │   ├── data/                     # Schemas, disease definitions and synthetic generator
 │   └── utils/                    # Statistical anomaly detection
 ├── configs/                      # Model and surveillance configuration
 ├── scripts/                      # Provisioning, validation, benchmarks and training
-├── tests/                        # Python runtime and API tests
+├── tests/                        # Python inference and worker tests
 ├── data/                         # Local SQLite and synthetic regression fixtures
 ├── models/                       # Local model artifacts (weights ignored by Git)
 └── docs/                         # Setup, validation evidence and remaining gates

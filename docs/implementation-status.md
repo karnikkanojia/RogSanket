@@ -3,10 +3,9 @@
 ## Verified on October 18, 2026
 
 - Development hardware: Apple M1, 8 GB unified memory, native ARM64 Python 3.14.
-- 29 model-free Python tests pass: SQLite durability/privacy, bounded queue, process
-  cancellation, timeout/crash recovery, schema retry, aggregate-only remote
-  reporting, local fallback, offline routing, report cache, stable alert IDs,
-  artifact checksums, and explicit missing-model failures.
+- After Python server removal, 17 model-free Python tests pass for worker lifecycle,
+  artifact gates/checksums, processor contracts, memory guards and evaluation failures.
+  Storage, schema retry, jobs, privacy, reporting and API checks now target Swift.
 - The Next.js client is retired and removed; SwiftUI is the supported UI.
 - Swift inference worker builds against pinned MLX Swift dependencies and returns
   the expected missing-artifact JSON protocol error.
@@ -75,8 +74,9 @@ clinical performance, or completed all-modality release is claimed.
 ## Compatibility changes
 
 The Swift server on port 8000 is canonical. The compatibility launcher starts it.
-FastAPI remains available explicitly for rollback/reference tests. A shared writer
-lease prevents both servers from owning the same database. The old
+The Python HTTP server and duplicate application/storage/job ownership have been
+removed. A writer lease prevents concurrent native servers from owning the same
+database. Python remains the inference worker and offline reference tooling. The old
 RunPod script is a transport adapter requiring `EPICAST_API_URL`, not a CUDA model
 server. Legacy Flask `/v1/*`, RunPod `extract`/`fuse`, synthetic spectrogram output,
 and implicit demo modality responses are removed. Existing API endpoint
