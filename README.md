@@ -121,9 +121,7 @@ epicast/
 │   │   └── disease_definitions.py  # WHO ICD-10 syndromic surveillance categories
 │   ├── utils/
 │   │   ├── __init__.py
-│   │   ├── anomaly_detection.py    # CUSUM, Poisson thresholds
-│   │   ├── fhir_generator.py       # FHIR-compatible report output
-│   │   └── geo_utils.py            # Location handling
+│   │   └── anomaly_detection.py    # CUSUM, Poisson thresholds
 │   ├── api/
 │   │   ├── __init__.py
 │   │   └── app.py                  # FastAPI backend
