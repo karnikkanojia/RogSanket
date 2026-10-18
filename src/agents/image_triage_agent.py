@@ -8,7 +8,6 @@ Then MedGemma 4B provides multimodal reasoning on flagged images.
 Pipeline: MedSigLIP (image encoding) → zero-shot matching → MedGemma 4B (detailed analysis)
 """
 
-import torch
 import numpy as np
 from PIL import Image
 from typing import Optional
@@ -114,6 +113,7 @@ class ImageTriageAgent:
 
     def _precompute_pattern_embeddings(self):
         """Pre-compute text embeddings for all disease patterns."""
+        import torch
         logger.info("Pre-computing disease pattern embeddings...")
 
         for pattern_name, pattern_data in DISEASE_VISUAL_PATTERNS.items():
@@ -145,6 +145,7 @@ class ImageTriageAgent:
         Returns:
             List of {pattern, score, syndrome, reportable} sorted by score descending
         """
+        import torch
         if not self.siglip_model:
             logger.warning("MedSigLIP not loaded. Skipping image classification.")
             return []

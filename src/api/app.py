@@ -1,572 +1,277 @@
-"""
-EpiCast API — FastAPI backend connecting all agents.
-
-Endpoints:
-    POST /encounter           — Submit a clinical encounter (text or audio)
-    POST /encounter/image     — Submit a clinical image for triage
-    POST /cough/analyze       — Analyze cough audio (spectrogram + classification)
-    GET  /surveillance/scan   — Run anomaly scan across all districts
-    GET  /surveillance/report — Generate situation report for a district
-    GET  /alerts              — Get active alerts
-    POST /alert/advisory      — Generate health advisory for an alert
-    GET  /fhir/report         — Generate FHIR surveillance report
-    GET  /dashboard           — Dashboard summary data
-
-Usage:
-    uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload
-"""
-
-import os
-import io
-import json
-import uuid
+"""Canonical EpiCast API. Heavy model execution is isolated from the event loop."""
+import asyncio
 import base64
-import tempfile
-from datetime import datetime, timedelta
-from typing import Optional
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
+import json
+import os
+import time
+from typing import Optional
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from loguru import logger
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field, field_validator
 
-
-# ============================================================================
-# Global state (initialized at startup)
-# ============================================================================
-_state = {
-    "intake_agent": None,
-    "image_agent": None,
-    "surveillance_agent": None,
-    "alert_agent": None,
-    "database": None,
-    "initialized": False,
-}
+from src.runtime.config import Settings
+from src.runtime.scheduler import Scheduler, QueueFull
+from src.runtime.storage import Store
+from src.runtime.service import Service
+from src.runtime.jobs import Jobs
+from src.runtime.memory import snapshot
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Initialize models and agents at startup."""
-    logger.info("Initializing EpiCast...")
-
-    # Check for edge mode (4B only) vs full mode (4B + 27B)
-    edge_mode = os.environ.get("EPICAST_EDGE_MODE", "true").lower() == "true"
-
-    from src.agents.surveillance_agent import SurveillanceDatabase
-
-    _state["database"] = SurveillanceDatabase()
-
+async def lifespan(app):
+    settings = Settings.from_env()
+    store = Store(settings.database)
+    scheduler = Scheduler(settings)
+    await scheduler.start()
+    app.state.settings = settings
+    app.state.store = store
+    app.state.scheduler = scheduler
+    app.state.service = Service(settings, store, scheduler)
+    app.state.jobs = Jobs(store)
     try:
-        from src.models.medgemma_loader import load_medgemma_4b
-
-        # Load MedGemma 4B (always needed)
-        lora_path = os.environ.get("EPICAST_LORA_PATH", None)
-        model_4b, proc_4b = load_medgemma_4b(
-            model_id=os.environ.get("MEDGEMMA_4B_ID", "google/medgemma-4b-it"),
-            quantize="4bit",
-            lora_adapter_path=lora_path,
-        )
-
-        # Initialize Intake Agent
-        from src.agents.intake_agent import IntakeAgent
-        use_medasr = os.environ.get("EPICAST_USE_MEDASR", "false").lower() == "true"
-        _state["intake_agent"] = IntakeAgent(
-            model=model_4b,
-            processor=proc_4b,
-            use_medasr=use_medasr,
-        )
-
-        # Initialize Image Triage Agent
-        from src.agents.image_triage_agent import ImageTriageAgent
-        _state["image_agent"] = ImageTriageAgent(
-            medgemma_model=model_4b,
-            medgemma_processor=proc_4b,
-        )
-
-        # Load 27B if not in edge mode
-        model_27b, proc_27b = None, None
-        if not edge_mode:
-            try:
-                from src.models.medgemma_loader import load_medgemma_27b
-                model_27b, proc_27b = load_medgemma_27b(quantize="4bit")
-            except Exception as e:
-                logger.warning(f"27B model not loaded (edge mode fallback): {e}")
-
-        # Initialize Surveillance Agent
-        from src.agents.surveillance_agent import SurveillanceAgent
-        _state["surveillance_agent"] = SurveillanceAgent(
-            database=_state["database"],
-            model_27b=model_27b,
-            processor_27b=proc_27b,
-            model_4b=model_4b,
-            processor_4b=proc_4b,
-        )
-
-        # Initialize Alert Agent
-        from src.agents.alert_agent import AlertAgent
-        _state["alert_agent"] = AlertAgent(
-            model=model_27b or model_4b,
-            processor=proc_27b or proc_4b,
-        )
-
-        _state["initialized"] = True
-        mode_str = "EDGE (4B only)" if edge_mode else "FULL (4B + 27B)"
-        logger.info(f"EpiCast initialized successfully in {mode_str} mode")
-
-    except Exception as e:
-        logger.error(f"Initialization failed: {e}")
-        logger.info("Running in DEMO mode without models")
-
-    yield
-
-    logger.info("Shutting down EpiCast...")
+        yield
+    finally:
+        await app.state.jobs.close()
+        await scheduler.close()
+        store.close()
 
 
-# ============================================================================
-# FastAPI App
-# ============================================================================
-app = FastAPI(
-    title="EpiCast API",
-    description="Agentic Disease Surveillance System powered by MedGemma",
-    version="1.0.0",
-    lifespan=lifespan,
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="EpiCast API", version="2.0.0", lifespan=lifespan)
+app.add_middleware(CORSMiddleware,
+    allow_origins=os.getenv("EPICAST_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(","),
+    allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type"])
 
 
-# ============================================================================
-# Request/Response Models
-# ============================================================================
+@app.exception_handler(QueueFull)
+async def queue_error(request, exc):
+    return JSONResponse({"detail": str(exc)}, status_code=429, headers={"Retry-After": "5"})
+
+
+@app.exception_handler(MemoryError)
+async def memory_error(request, exc):
+    return JSONResponse({"detail": str(exc)}, status_code=503, headers={"Retry-After": "10"})
+
+
+@app.exception_handler(RuntimeError)
+async def runtime_error(request, exc):
+    return JSONResponse({"detail": str(exc)}, status_code=503)
+
+
+@app.exception_handler(TimeoutError)
+async def timeout_error(request, exc):
+    return JSONResponse({"detail": str(exc)}, status_code=504)
+
+
+@app.exception_handler(ValueError)
+async def value_error(request, exc):
+    return JSONResponse({"detail": str(exc)}, status_code=422)
+
+
 class EncounterRequest(BaseModel):
-    narrative: str
-    district: Optional[str] = None
-    facility_name: Optional[str] = None
+    narrative: str = Field(min_length=1, max_length=16000)
+    district: Optional[str] = Field(None, max_length=200)
+    facility_name: Optional[str] = Field(None, max_length=200)
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+
+    @field_validator("narrative")
+    @classmethod
+    def nonempty(cls, value):
+        if not value.strip():
+            raise ValueError("Narrative is empty")
+        return value
+
+
+class AudioRequest(BaseModel):
+    audio_base64: str = Field(max_length=16_000_000)
+    format: str = "wav"
+
+    @field_validator("audio_base64")
+    @classmethod
+    def valid_base64(cls, value):
+        if not base64.b64decode(value, validate=True):
+            raise ValueError("Audio is empty")
+        return value
+
+
+class ImageRequest(BaseModel):
+    image_base64: str = Field(max_length=16_000_000)
+    clinical_context: str = Field("", max_length=16000)
+
+    @field_validator("image_base64")
+    @classmethod
+    def valid_base64(cls, value):
+        if not base64.b64decode(value, validate=True):
+            raise ValueError("Image is empty")
+        return value
+
+
+class MultimodalRequest(EncounterRequest):
+    audio_base64: Optional[str] = Field(None, max_length=16_000_000)
+    image_base64: Optional[str] = Field(None, max_length=16_000_000)
+
+
+class ReportRequest(BaseModel):
+    district: str = Field(min_length=1, max_length=200)
+    max_tokens: int = Field(1024, ge=1, le=1024)
+    refresh: bool = False
 
 
 class AdvisoryRequest(BaseModel):
     alert_id: str
-    language: str = "english"
-    audience: str = "community"
+    language: str = Field("english", max_length=100)
+    audience: str = Field("community", max_length=100)
 
 
-class TranscribeRequest(BaseModel):
-    audio_base64: str
-    format: str = "wav"
+def ready(variable):
+    from pathlib import Path
+    root = os.getenv(variable, "")
+    return bool(root and (Path(root) / "epicast-artifact.json").is_file())
 
 
-class CoughAnalyzeRequest(BaseModel):
-    audio_base64: str
-    format: str = "wav"
-
-
-class ImageTriageRequest(BaseModel):
-    image_base64: str
-    clinical_context: Optional[str] = None
-
-
-# ============================================================================
-# Endpoints
-# ============================================================================
 @app.get("/health")
-async def health_check():
-    return {
-        "status": "ok",
-        "initialized": _state["initialized"],
-        "total_encounters": _state["database"].total_encounters if _state["database"] else 0,
-    }
+async def health(request: Request):
+    status = request.app.state.scheduler.status()
+    modalities = {"text": ready("EPICAST_ARTIFACT"), "image": ready("EPICAST_MEDSIGLIP_ARTIFACT"),
+                  "transcription": ready("EPICAST_MEDASR_ARTIFACT"), "cough": ready("EPICAST_HEAR_ARTIFACT")}
+    return {"status": "ok", "initialized": status["worker_loaded"],
+            "total_encounters": request.app.state.store.total_encounters,
+            "runtime": status, "memory": snapshot(),
+            "artifacts_present": modalities,
+            "release_validated": False,
+            "readiness_note": "Artifact presence is not validation. Execution verifies checksums and parity gates."}
 
 
 @app.post("/encounter")
-async def submit_encounter(request: EncounterRequest):
-    """Submit a clinical encounter for syndromic extraction."""
-    if not _state["intake_agent"]:
-        raise HTTPException(503, "Intake agent not initialized")
-
-    encounter = _state["intake_agent"].process_encounter(
-        narrative=request.narrative,
-        location_lat=request.latitude,
-        location_lon=request.longitude,
-        district=request.district,
-        facility_name=request.facility_name,
-    )
-
-    # Store in database
-    _state["database"].add_encounter(encounter)
-
-    # Serialize response
-    signal_data = None
-    if encounter.syndromic_signal:
-        signal_data = encounter.syndromic_signal.model_dump()
-
-    return {
-        "encounter_id": encounter.encounter_id,
-        "timestamp": encounter.timestamp.isoformat(),
-        "syndromic_signal": signal_data,
-        "total_encounters": _state["database"].total_encounters,
-    }
+async def encounter(payload: EncounterRequest, request: Request):
+    return await request.app.state.service.encounter(payload.model_dump())
 
 
 @app.get("/surveillance/scan")
-async def run_surveillance_scan(district: Optional[str] = None):
-    """Run anomaly detection scan across districts."""
-    if not _state["surveillance_agent"]:
-        raise HTTPException(503, "Surveillance agent not initialized")
-
-    districts = [district] if district else None
-    alerts = _state["surveillance_agent"].scan_for_anomalies(districts=districts)
-
-    return {
-        "scan_time": datetime.now().isoformat(),
-        "alerts_count": len(alerts),
-        "alerts": [a.model_dump() for a in alerts],
-    }
-
-
-@app.get("/surveillance/report")
-async def generate_report(district: str):
-    """Generate situation report for a district."""
-    if not _state["surveillance_agent"]:
-        raise HTTPException(503, "Surveillance agent not initialized")
-
-    alerts = _state["surveillance_agent"].scan_for_anomalies(districts=[district])
-    report = _state["surveillance_agent"].generate_situation_report(district, alerts)
-
-    return {
-        "district": district,
-        "report_time": datetime.now().isoformat(),
-        "report": report,
-        "alerts": [a.model_dump() for a in alerts],
-    }
+async def scan(request: Request, district: Optional[str] = None):
+    alerts = request.app.state.service.surveillance.scan_for_anomalies([district] if district else None)
+    return {"scan_time": datetime.now().isoformat(), "alerts_count": len(alerts),
+            "alerts": [a.model_dump(mode="json") for a in alerts]}
 
 
 @app.get("/alerts")
-async def get_alerts():
-    """Get all active surveillance alerts."""
-    if not _state["surveillance_agent"]:
-        raise HTTPException(503, "Surveillance agent not initialized")
-
-    alerts = _state["surveillance_agent"].scan_for_anomalies()
-
-    return {
-        "timestamp": datetime.now().isoformat(),
-        "total_alerts": len(alerts),
-        "by_level": {
-            "emergency": len([a for a in alerts if a.alert_level == "emergency"]),
-            "warning": len([a for a in alerts if a.alert_level == "warning"]),
-            "watch": len([a for a in alerts if a.alert_level == "watch"]),
-        },
-        "alerts": [a.model_dump() for a in alerts],
-    }
+async def alerts(request: Request):
+    found = request.app.state.service.surveillance.scan_for_anomalies()
+    return {"timestamp": datetime.now().isoformat(), "total_alerts": len(found),
+            "by_level": {level: sum(a.alert_level == level for a in found) for level in ("emergency", "warning", "watch")},
+            "alerts": [a.model_dump(mode="json") for a in found]}
 
 
-@app.post("/alert/advisory")
-async def generate_advisory(request: AdvisoryRequest):
-    """Generate a health advisory for an alert."""
-    if not _state["alert_agent"]:
-        raise HTTPException(503, "Alert agent not initialized")
-
-    # Find the alert
-    alerts = _state["surveillance_agent"].scan_for_anomalies()
-    target = next((a for a in alerts if a.alert_id == request.alert_id), None)
-
-    if not target and alerts:
-        target = alerts[0]  # Demo fallback
-
-    if not target:
-        raise HTTPException(404, "Alert not found")
-
-    advisory = _state["alert_agent"].generate_health_advisory(
-        alert=target,
-        language=request.language,
-        audience=request.audience,
-    )
-
-    return {
-        "alert_id": target.alert_id,
-        "language": request.language,
-        "audience": request.audience,
-        "advisory": advisory,
-    }
+@app.get("/surveillance/report")
+async def report(request: Request, district: str):
+    return await asyncio.wait_for(request.app.state.service.report(district), 180)
 
 
-@app.get("/fhir/report")
-async def generate_fhir_report(district: str):
-    """Generate FHIR-compatible surveillance report."""
-    if not _state["alert_agent"] or not _state["database"]:
-        raise HTTPException(503, "System not initialized")
+@app.post("/jobs/report", status_code=202)
+async def report_job(payload: ReportRequest, request: Request):
+    return request.app.state.jobs.submit("report", lambda: request.app.state.service.report(payload.district, payload.max_tokens, payload.refresh))
 
-    now = datetime.now()
-    period_start = now - timedelta(days=7)
 
-    alerts = _state["surveillance_agent"].scan_for_anomalies(districts=[district])
-    syndrome_counts = _state["database"].syndrome_distribution
+@app.post("/jobs/multimodal", status_code=202)
+async def multimodal_job(payload: MultimodalRequest, request: Request):
+    return request.app.state.jobs.submit("multimodal", lambda: request.app.state.service.multimodal(payload.model_dump()))
 
-    report = _state["alert_agent"].generate_fhir_report(
-        district=district,
-        period_start=period_start,
-        period_end=now,
-        syndrome_counts=syndrome_counts,
-        alerts=alerts,
-    )
 
-    return report
+@app.get("/jobs/{job_id}")
+async def job_status(job_id: str, request: Request):
+    result = request.app.state.store.get_job(job_id)
+    if result is None:
+        raise HTTPException(404, "Job not found")
+    return result
+
+
+@app.delete("/jobs/{job_id}")
+async def cancel_job(job_id: str, request: Request):
+    result = await request.app.state.jobs.cancel(job_id)
+    if result is None:
+        raise HTTPException(404, "Job not found")
+    return result
+
+
+@app.get("/jobs/{job_id}/events")
+async def job_events(job_id: str, request: Request):
+    await job_status(job_id, request)
+    async def events():
+        previous = None
+        while not await request.is_disconnected():
+            current = request.app.state.store.get_job(job_id)
+            encoded = json.dumps(current)
+            if encoded != previous:
+                yield f"event: status\ndata: {encoded}\n\n"
+                previous = encoded
+            if current["status"] in {"succeeded", "failed", "cancelled"}:
+                break
+            await asyncio.sleep(0.25)
+    return StreamingResponse(events(), media_type="text/event-stream")
 
 
 @app.post("/transcribe")
-async def transcribe_audio(request: TranscribeRequest):
-    """Transcribe clinical audio to text using MedASR."""
-    agent = _state["intake_agent"]
-    if agent and agent.use_medasr:
-        try:
-            suffix = f".{request.format}"
-            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
-                f.write(base64.b64decode(request.audio_base64))
-                tmp_path = f.name
-            try:
-                transcription = agent.transcribe_audio(tmp_path)
-                import librosa
-                duration = librosa.get_duration(filename=tmp_path)
-            finally:
-                os.unlink(tmp_path)
-            return {"transcription": transcription, "duration_seconds": round(duration, 1)}
-        except Exception as e:
-            logger.error(f"Transcription failed: {e}")
-
-    # Demo fallback
-    return {
-        "transcription": (
-            "Patient is a 32-year-old female presenting with three days of profuse "
-            "watery diarrhea and vomiting. Reports severe dehydration with sunken eyes "
-            "and poor skin turgor. Two neighbors in the same compound have similar "
-            "symptoms since last week. No travel history."
-        ),
-        "duration_seconds": 12.4,
-    }
+async def transcribe(payload: AudioRequest, request: Request):
+    return await request.app.state.scheduler.run(dict(payload.model_dump(), operation="transcribe"))
 
 
 @app.post("/image-triage")
-async def image_triage(request: ImageTriageRequest):
-    """Classify a clinical image using MedSigLIP zero-shot classification."""
-    agent = _state["image_agent"]
-    if agent:
-        try:
-            from PIL import Image
-            image_bytes = base64.b64decode(request.image_base64)
-            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-            classifications = agent.classify_image(image)
-            top = classifications[0] if classifications else {}
-            return {
-                "classifications": classifications,
-                "top_pattern": top.get("pattern", "unknown"),
-                "flagged": top.get("score", 0) > 0.3,
-            }
-        except Exception as e:
-            logger.error(f"Image triage failed: {e}")
-
-    # Demo fallback
-    return {
-        "classifications": [
-            {"pattern": "measles_rash", "score": 0.78, "syndrome": "acute_rash_fever", "reportable": True},
-            {"pattern": "chickenpox_rash", "score": 0.45, "syndrome": "acute_rash_fever", "reportable": False},
-            {"pattern": "hemorrhagic_signs", "score": 0.22, "syndrome": "acute_hemorrhagic_fever", "reportable": True},
-            {"pattern": "healthy_normal", "score": 0.15, "syndrome": None, "reportable": False},
-        ],
-        "top_pattern": "measles_rash",
-        "flagged": True,
-    }
+@app.post("/encounter/image")
+async def image(payload: ImageRequest, request: Request):
+    return await request.app.state.service.image(payload.model_dump())
 
 
 @app.post("/cough/analyze")
-async def analyze_cough(request: CoughAnalyzeRequest):
-    """Analyze cough audio: generate spectrogram and classify using HeAR."""
-    import numpy as np
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    try:
-        import librosa
-
-        # Decode audio
-        suffix = f".{request.format}"
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
-            f.write(base64.b64decode(request.audio_base64))
-            tmp_path = f.name
-
-        try:
-            audio, sr = librosa.load(tmp_path, sr=16000, mono=True)
-            duration = librosa.get_duration(y=audio, sr=sr)
-
-            # Compute mel spectrogram
-            S = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128, fmax=8000)
-            S_dB = librosa.power_to_db(S, ref=np.max)
-
-            # Render spectrogram to base64
-            fig, ax = plt.subplots(1, 1, figsize=(8, 3), dpi=100)
-            import librosa.display
-            librosa.display.specshow(S_dB, sr=sr, x_axis="time", y_axis="mel", ax=ax, cmap="magma")
-            ax.set_title("Cough Audio Spectrogram", fontsize=11)
-            fig.tight_layout()
-
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png", bbox_inches="tight", facecolor="white")
-            plt.close(fig)
-            buf.seek(0)
-            spec_b64 = base64.b64encode(buf.read()).decode("utf-8")
-
-            # Simple energy-based classification (placeholder for HeAR model)
-            rms = np.sqrt(np.mean(audio**2))
-            if rms > 0.05:
-                classification = "cough_detected"
-                confidence = min(0.6 + rms * 4, 0.95)
-            else:
-                classification = "healthy"
-                confidence = 0.7
-
-        finally:
-            os.unlink(tmp_path)
-
-        return {
-            "classification": classification,
-            "confidence": round(confidence, 2),
-            "spectrogram_base64": spec_b64,
-            "duration_seconds": round(duration, 1),
-            "syndrome_mapping": "acute_respiratory_infection" if classification == "cough_detected" else None,
-        }
-    except Exception as e:
-        logger.error(f"Cough analysis failed: {e}")
-        return {
-            "classification": "cough_detected",
-            "confidence": 0.82,
-            "spectrogram_base64": "",
-            "duration_seconds": 3.0,
-            "syndrome_mapping": "acute_respiratory_infection",
-        }
+async def cough(payload: AudioRequest, request: Request):
+    return await request.app.state.scheduler.run(dict(payload.model_dump(), operation="cough"))
 
 
 @app.get("/hear/spectrogram")
-async def hear_spectrogram():
-    """Generate a mel spectrogram from cough audio for HeAR analysis."""
-    import numpy as np
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+async def spectrogram():
+    raise HTTPException(410, "Synthetic spectrogram removed. Submit recorded audio to /cough/analyze.")
 
-    try:
-        import librosa
-        import librosa.display
 
-        # Generate synthetic cough-like audio
-        sr = 16000
-        duration = 3.2
-        t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+@app.post("/alert/advisory")
+async def advisory(payload: AdvisoryRequest, request: Request):
+    found = request.app.state.service.surveillance.scan_for_anomalies()
+    target = next((a for a in found if a.alert_id == payload.alert_id), None)
+    if target is None:
+        raise HTTPException(404, "Alert not found")
+    result = await request.app.state.service.generate("advisory", [{"role": "user", "content":
+        f"Draft advisory in {payload.language} for {payload.audience}. Use only this evidence: "
+        + json.dumps({"district": target.district, "syndrome": target.syndrome_category,
+                      "cases": target.case_count_current_week, "level": target.alert_level})}])
+    return dict(payload.model_dump(), advisory=result["text"], provenance=result["provenance"], draft=True)
 
-        # Simulate cough: short bursts of broadband noise with decay
-        audio = np.zeros_like(t)
-        for burst_start in [0.1, 0.4, 0.9, 1.5]:
-            burst_len = 0.15
-            mask = (t >= burst_start) & (t < burst_start + burst_len)
-            decay = np.exp(-15 * (t[mask] - burst_start))
-            audio[mask] += np.random.randn(mask.sum()) * decay * 0.8
-        # Add low-frequency rumble
-        audio += 0.1 * np.sin(2 * np.pi * 120 * t) * np.exp(-0.5 * t)
-        audio = audio / np.max(np.abs(audio) + 1e-8)
 
-        # Compute mel spectrogram
-        S = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128, fmax=8000)
-        S_dB = librosa.power_to_db(S, ref=np.max)
-
-        # Render to PNG
-        fig, ax = plt.subplots(1, 1, figsize=(8, 3), dpi=100)
-        librosa.display.specshow(S_dB, sr=sr, x_axis="time", y_axis="mel", ax=ax, cmap="magma")
-        ax.set_title("Mel Spectrogram — Cough Audio", fontsize=11, color="#374151")
-        ax.set_xlabel("Time (s)", fontsize=9, color="#6B7280")
-        ax.set_ylabel("Frequency (Hz)", fontsize=9, color="#6B7280")
-        fig.tight_layout()
-
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png", bbox_inches="tight", facecolor="white")
-        plt.close(fig)
-        buf.seek(0)
-        spec_b64 = base64.b64encode(buf.read()).decode("utf-8")
-
-        return {
-            "spectrogram_base64": spec_b64,
-            "analysis": {
-                "model": "HeAR",
-                "audio_duration_seconds": duration,
-                "sample_rate": sr,
-                "n_mels": 128,
-                "features_extracted": 768,
-                "classification": "cough_detected",
-                "confidence": 0.87,
-                "notes": "Mel spectrogram generated from synthetic cough audio. Connect HeAR model for real embedding analysis.",
-            },
-        }
-    except Exception as e:
-        logger.error(f"Spectrogram generation failed: {e}")
-        return {
-            "spectrogram_base64": "",
-            "analysis": {
-                "model": "HeAR",
-                "audio_duration_seconds": 3.2,
-                "sample_rate": 16000,
-                "n_mels": 128,
-                "features_extracted": 768,
-                "classification": "cough_detected",
-                "confidence": 0.87,
-                "notes": "Demo mode — spectrogram generation requires librosa and matplotlib.",
-            },
-        }
+@app.get("/fhir/report")
+async def fhir(request: Request, district: str):
+    service = request.app.state.service
+    summary, found = service.summary(district)
+    now = datetime.now()
+    from collections import Counter
+    counts = dict(Counter(e.syndromic_signal.syndrome_category for e in service.store.encounters
+        if e.district == district and now - timedelta(days=7) <= e.timestamp <= now and e.syndromic_signal))
+    return service.alerts.generate_fhir_report(district, now - timedelta(days=7), now, counts, found)
 
 
 @app.get("/dashboard")
-async def dashboard_data():
-    """Get dashboard summary data."""
-    db = _state["database"]
-    if not db:
-        return {"error": "Database not initialized"}
-
-    # Run scan
-    alerts = []
-    if _state["surveillance_agent"]:
-        alerts = _state["surveillance_agent"].scan_for_anomalies()
-
-    return {
-        "timestamp": datetime.now().isoformat(),
-        "total_encounters": db.total_encounters,
-        "syndrome_distribution": db.syndrome_distribution,
-        "districts": list(set(db._signal_districts)),
-        "active_alerts": {
-            "total": len(alerts),
-            "emergency": len([a for a in alerts if a.alert_level == "emergency"]),
-            "warning": len([a for a in alerts if a.alert_level == "warning"]),
-            "watch": len([a for a in alerts if a.alert_level == "watch"]),
-        },
-        "recent_encounters": [
-            {
-                "id": e.encounter_id,
-                "time": e.timestamp.isoformat(),
-                "district": e.district,
-                "syndrome": e.syndromic_signal.syndrome_category if e.syndromic_signal else None,
-                "severity": e.syndromic_signal.severity.value if e.syndromic_signal else None,
-            }
-            for e in db.encounters[-20:]  # Last 20
-        ],
-    }
+async def dashboard(request: Request):
+    db = request.app.state.store
+    found = request.app.state.service.surveillance.scan_for_anomalies()
+    return {"timestamp": datetime.now().isoformat(), "total_encounters": db.total_encounters,
+            "syndrome_distribution": db.syndrome_distribution, "districts": sorted(set(db._signal_districts)),
+            "active_alerts": dict(total=len(found), **{level: sum(a.alert_level == level for a in found)
+                for level in ("emergency", "warning", "watch")}),
+            "recent_encounters": [{"id": e.encounter_id, "time": e.timestamp.isoformat(),
+                "district": e.district, "syndrome": e.syndromic_signal.syndrome_category if e.syndromic_signal else None}
+                for e in db.encounters[-20:]]}
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("src.api.app:app", host="127.0.0.1", port=8000, workers=1)

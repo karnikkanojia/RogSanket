@@ -1,0 +1,10 @@
+# Apple libraries installed for API inspection; model parity remains unverified.
+-r requirements.txt
+mlx-vlm==0.7.8
+mlx==0.32.4
+mlx-metal==0.32.4
+torch==2.14.1
+transformers==5.20.1
+librosa==1.0.0
+soundfile==0.14.0
+onnxruntime==1.31.0

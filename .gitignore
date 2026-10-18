@@ -32,3 +32,18 @@ venv/
 .vscode/
 *.swp
 *.swo
+
+# Local runtime state and model/build artifacts
+.venv-apple/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+models/**/*.safetensors
+models/**/*.gguf
+native/.build/
+benchmark-results.json
+evaluation-results.json
+
+frontend/tsconfig.tsbuildinfo
+native/**/.build/
+native/**/dist/

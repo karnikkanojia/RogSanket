@@ -3,20 +3,16 @@ Model loading utilities for all HAI-DEF models used in EpiCast.
 Supports quantized loading for edge deployment and full-precision for training.
 """
 
-import torch
-from transformers import (
-    AutoProcessor,
-    AutoModelForImageTextToText,
-    AutoModelForCausalLM,
-    BitsAndBytesConfig,
-)
-from peft import PeftModel
+from __future__ import annotations
+
 from loguru import logger
 from typing import Optional
 
 
 def get_quantization_config(mode: str = "4bit") -> Optional[BitsAndBytesConfig]:
     """Get BitsAndBytes quantization config."""
+    import torch
+    from transformers import BitsAndBytesConfig
     if mode == "4bit":
         return BitsAndBytesConfig(
             load_in_4bit=True,
@@ -30,7 +26,7 @@ def get_quantization_config(mode: str = "4bit") -> Optional[BitsAndBytesConfig]:
 
 
 def load_medgemma_4b(
-    model_id: str = "google/medgemma-4b-it",
+    model_id: str = "google/medgemma-1.5-4b-it",
     quantize: str = "4bit",
     lora_adapter_path: Optional[str] = None,
     device_map: str = "auto",
@@ -48,6 +44,9 @@ def load_medgemma_4b(
     Returns:
         (model, processor) tuple
     """
+    import torch
+    from transformers import AutoProcessor, AutoModelForImageTextToText, AutoModelForCausalLM
+    from peft import PeftModel
     logger.info(f"Loading MedGemma 4B: {model_id} (quantize={quantize})")
 
     quant_config = get_quantization_config(quantize)
@@ -92,6 +91,9 @@ def load_medgemma_27b(
     Returns:
         (model, processor) tuple
     """
+    import torch
+    from transformers import AutoProcessor, AutoModelForImageTextToText, AutoModelForCausalLM
+    from peft import PeftModel
     logger.info(f"Loading MedGemma 27B: {model_id} (quantize={quantize})")
 
     quant_config = get_quantization_config(quantize)
@@ -126,6 +128,7 @@ def load_medsiglip(
     Returns:
         (model, processor) tuple
     """
+    import torch
     logger.info(f"Loading MedSigLIP: {model_id}")
 
     from transformers import AutoModel, AutoProcessor as SigLIPProcessor
@@ -165,6 +168,7 @@ def generate_text(
     Returns:
         Generated text string
     """
+    import torch
     # Apply chat template
     input_text = processor.apply_chat_template(
         messages,

@@ -36,7 +36,7 @@ from loguru import logger
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Fine-tune MedGemma 4B for syndromic extraction")
-    parser.add_argument("--model_id", type=str, default="google/medgemma-4b-it",
+    parser.add_argument("--model_id", type=str, default="google/medgemma-1.5-4b-it",
                         help="HuggingFace model ID")
     parser.add_argument("--data_path", type=str, default="data/syndromic_training_data.jsonl",
                         help="Path to training data JSONL")

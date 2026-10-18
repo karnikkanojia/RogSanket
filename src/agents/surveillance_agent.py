@@ -251,7 +251,7 @@ class SurveillanceAgent:
 
                     import uuid
                     alert = SurveillanceAlert(
-                        alert_id=str(uuid.uuid4())[:8],
+                        alert_id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"epicast:{district}:{syndrome}:{datetime.now().date().isocalendar()[:2]}")),
                         alert_level=alert_level,
                         syndrome_category=syndrome,
                         district=district,

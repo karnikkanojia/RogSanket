@@ -1,8 +1,8 @@
-# EpiCast Model Configuration
+# CUDA training/reference configuration. Apple runtime settings live in src/runtime/config.py.
 
 models:
   medgemma_4b:
-    model_id: "google/medgemma-4b-it"
+    model_id: "google/medgemma-1.5-4b-it"
     # Use MedGemma 1.5 4B for improved medical text + imaging
     model_id_v15: "google/medgemma-1.5-4b-it"
     quantization: "4bit"  # QLoRA for edge deployment

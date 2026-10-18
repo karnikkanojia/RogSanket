@@ -68,9 +68,9 @@ class IntakeAgent:
     def _load_medasr(self):
         """Load MedASR for speech-to-text."""
         try:
-            from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor
+            from transformers import AutoModelForCTC, AutoProcessor
             logger.info("Loading MedASR for speech transcription...")
-            self.medasr_model = AutoModelForSpeechSeq2Seq.from_pretrained(
+            self.medasr_model = AutoModelForCTC.from_pretrained(
                 "google/medasr",
                 torch_dtype="auto",
                 device_map="auto",

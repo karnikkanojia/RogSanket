@@ -6,6 +6,10 @@
 
 set -e
 
+if [[ "$(uname -s)" == Darwin ]]; then
+    exec bash "$(dirname "$0")/setup_local.sh"
+fi
+
 echo "============================================="
 echo "  EpiCast - Setup Script"
 echo "============================================="
@@ -31,7 +35,7 @@ fi
 # -----------------------------------------
 echo ""
 echo "[Step 1] Installing Python dependencies..."
-pip install -r requirements.txt --quiet
+pip install -r requirements-training.txt --quiet
 
 # -----------------------------------------
 # Step 2: Hugging Face authentication
@@ -61,7 +65,7 @@ if [ -z "$HF_TOKEN" ]; then
 fi
 
 echo "Logging in to Hugging Face..."
-python3 -c "from huggingface_hub import login; login(token='${HF_TOKEN}')"
+python3 -c "from huggingface_hub import login; login(token=__import__('os').environ['HF_TOKEN'])"
 echo "✓ Logged in successfully"
 
 # -----------------------------------------
@@ -79,10 +83,10 @@ from transformers import AutoProcessor, AutoModelForImageTextToText
 import torch
 
 print('  Downloading processor...')
-processor = AutoProcessor.from_pretrained('google/medgemma-4b-it')
+processor = AutoProcessor.from_pretrained('google/medgemma-1.5-4b-it')
 print('  Downloading model weights...')
 model = AutoModelForImageTextToText.from_pretrained(
-    'google/medgemma-4b-it',
+    'google/medgemma-1.5-4b-it',
     torch_dtype=torch.bfloat16,
     device_map='auto',
 )
@@ -114,8 +118,8 @@ read -p "Download MedASR speech model? (~3GB, for voice input) [y/N]: " dl_asr
 if [[ "$dl_asr" =~ ^[Yy]$ ]]; then
     echo "Downloading MedASR..."
     python3 -c "
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor
-model = AutoModelForSpeechSeq2Seq.from_pretrained('google/medasr', device_map='auto')
+from transformers import AutoModelForCTC, AutoProcessor
+model = AutoModelForCTC.from_pretrained('google/medasr', device_map='auto')
 proc = AutoProcessor.from_pretrained('google/medasr')
 print('  ✓ MedASR downloaded')
 del model

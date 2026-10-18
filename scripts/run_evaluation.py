@@ -30,7 +30,7 @@ from src.agents.intake_agent import IntakeAgent
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_id", type=str, default="google/medgemma-4b-it")
+    parser.add_argument("--model_id", type=str, default="google/medgemma-1.5-4b-it")
     parser.add_argument("--model_path", type=str, default=None, help="Path to LoRA adapter")
     parser.add_argument("--baseline", action="store_true", help="Evaluate without fine-tuning")
     parser.add_argument("--num_examples", type=int, default=100)
@@ -98,6 +98,8 @@ def evaluate(args):
 
             if signal is None:
                 metrics["json_valid"].append(0)
+                for metric in ("syndrome_accuracy", "severity_accuracy", "age_group_accuracy", "symptom_f1", "symptom_precision", "symptom_recall", "icd10_f1", "reportable_recall", "cluster_accuracy"):
+                    metrics[metric].append(0)
                 results.append({"index": i, "success": False, "error": "extraction_failed"})
                 continue
 
@@ -150,6 +152,8 @@ def evaluate(args):
         except Exception as e:
             logger.error(f"Error on example {i}: {e}")
             metrics["json_valid"].append(0)
+            for metric in ("syndrome_accuracy", "severity_accuracy", "age_group_accuracy", "symptom_f1", "symptom_precision", "symptom_recall", "icd10_f1", "reportable_recall", "cluster_accuracy"):
+                metrics[metric].append(0)
             results.append({"index": i, "success": False, "error": str(e)})
 
     # Compute aggregate metrics
