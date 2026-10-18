@@ -47,3 +47,6 @@ evaluation-results.json
 frontend/tsconfig.tsbuildinfo
 native/**/.build/
 native/**/dist/
+
+models/medgemma-1.5-4b-it-4bit/
+inference-results*.json

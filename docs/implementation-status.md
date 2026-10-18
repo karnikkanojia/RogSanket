@@ -3,7 +3,7 @@
 ## Verified on October 18, 2026
 
 - Development hardware: Apple M1, 8 GB unified memory, native ARM64 Python 3.14.
-- 18 model-free runtime tests pass: SQLite durability/privacy, bounded queue, process
+- 20 model-free runtime tests pass: SQLite durability/privacy, bounded queue, process
   cancellation, timeout/crash recovery, schema retry, aggregate-only remote
   reporting, local fallback, offline routing, report cache, stable alert IDs,
   artifact checksums, and explicit missing-model failures.
@@ -12,8 +12,12 @@
   the expected missing-artifact JSON protocol error.
 - SwiftUI development client builds with media import, microphone dictation,
   camera capture, transcript review, intake, dashboard, alerts and report jobs.
-- MLX Python imports successfully and executes a tiny array operation on
-  `Device(gpu, 0)`. This proves Metal access, not model performance.
+- Real four-bit MedGemma 1.5 text inference runs through MLX on the M1 GPU.
+  Six repeated synthetic extractions returned schema-valid JSON: 17.9–20.1 seconds
+  cold, 7.1–7.6 seconds warm, 21–23 generated tokens/second, 2.71 GB peak MLX
+  allocation. These are smoke measurements, not p95 or clinical validation.
+- The vision smoke request exceeded available memory and was terminated by the
+  active memory guard. Full multimodal M1 support is not certified.
 - Apple runtime dependencies are locked. Swift worker dependencies are pinned
   and captured in `native/Worker/Package.resolved`.
 

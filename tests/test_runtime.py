@@ -249,10 +249,17 @@ def test_artifact_checksums_detect_tampering(tmp_path):
                 'text_parity_passed': True, 'image_parity_passed': True,
                 'sha256': {name: hashlib.sha256(contents.encode()).hexdigest() for name, contents in files.items()}}
     (tmp_path / 'epicast-artifact.json').write_text(json.dumps(manifest))
+    (tmp_path / '.cache').mkdir()
+    (tmp_path / '.cache' / 'download-metadata.json').write_text('{}')
     assert Settings(artifact=str(tmp_path)).manifest()['revision'] == 'pinned'
+    manifest.update(text_parity_passed=False, image_parity_passed=False)
+    (tmp_path / 'epicast-artifact.json').write_text(json.dumps(manifest))
+    with pytest.raises(RuntimeError, match='parity'):
+        Settings(artifact=str(tmp_path)).manifest()
+    assert Settings(artifact=str(tmp_path)).manifest(require_parity=False)['revision'] == 'pinned'
     (tmp_path / 'tokenizer_config.json').write_text('tampered')
     with pytest.raises(RuntimeError, match='checksum'):
-        Settings(artifact=str(tmp_path)).manifest()
+        Settings(artifact=str(tmp_path)).manifest(require_parity=False)
 
 
 def test_unrequested_remote_is_never_called(monkeypatch):
@@ -295,3 +302,41 @@ def test_job_status_events_and_unknown_ids(monkeypatch, tmp_path):
         assert 'succeeded' in response.text
         assert client.get('/jobs/missing').status_code == 404
         assert client.delete('/jobs/missing').status_code == 404
+
+
+def test_active_memory_pressure_kills_worker_and_recovers(monkeypatch, tmp_path):
+    from src.runtime import memory
+    state = {'pressure': 'normal', 'available_bytes': 2**30}
+    monkeypatch.setattr(memory, 'snapshot', lambda: dict(state))
+    worker = tmp_path / 'pressure_worker.py'
+    worker.write_text('''import sys,json,time
+for line in sys.stdin:
+ request=json.loads(line)
+ time.sleep(request.get("sleep",0))
+ print(json.dumps({"result":{"text":"ok"}}),flush=True)
+''')
+    async def check():
+        scheduler = Scheduler(Settings(), [sys.executable, str(worker)])
+        await scheduler.start()
+        try:
+            pending = asyncio.create_task(scheduler.run({'operation': 'generate', 'sleep': 30}))
+            await asyncio.sleep(0.1)
+            state['pressure'] = 'critical'
+            with pytest.raises(MemoryError):
+                await asyncio.wait_for(pending, 3)
+            assert scheduler.process is None
+            state['pressure'] = 'normal'
+            assert (await scheduler.run({'operation': 'generate'}))['text'] == 'ok'
+            recovered_process = scheduler.process
+        finally:
+            await scheduler.close()
+        assert recovered_process.returncode == 0
+    asyncio.run(check())
+
+
+def test_partial_reasoning_is_not_a_clinical_answer():
+    from src.runtime.worker import final_answer
+    assert final_answer('{"symptoms": []}') == '{"symptoms": []}'
+    assert final_answer('<unused94>thought\ninternal<unused95>{"symptoms": []}') == '{"symptoms": []}'
+    with pytest.raises(RuntimeError, match='final answer'):
+        final_answer('<unused94>thought\ntruncated')

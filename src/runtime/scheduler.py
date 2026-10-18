@@ -36,10 +36,17 @@ class Scheduler:
     async def start(self):
         self.consumer = asyncio.create_task(self._consume())
 
-    async def _stop_worker(self):
+    async def _stop_worker(self, graceful=False):
         process, self.process = self.process, None
         self.loaded = False
         if process and process.returncode is None:
+            if graceful and process.stdin:
+                process.stdin.close()
+                try:
+                    await asyncio.wait_for(process.wait(), 2)
+                    return
+                except TimeoutError:
+                    pass
             process.kill()
             await process.wait()
 
@@ -50,7 +57,7 @@ class Scheduler:
                 await self.consumer
             except asyncio.CancelledError:
                 pass
-        await self._stop_worker()
+        await self._stop_worker(graceful=True)
         while not self.queue.empty():
             task = self.queue.get_nowait()
             if not task.future.done():
@@ -78,10 +85,19 @@ class Scheduler:
             future.cancel()
             raise
 
+    async def _watch_memory(self):
+        from .memory import admit
+        while True:
+            await asyncio.sleep(1)
+            try:
+                await asyncio.to_thread(admit)
+            except MemoryError as exc:
+                return str(exc)
+
     async def _consume(self):
         while True:
             task = await self.queue.get()
-            read = None
+            read = pressure = None
             try:
                 if task.future.cancelled():
                     continue
@@ -105,10 +121,14 @@ class Scheduler:
                 self.process.stdin.write((json.dumps(task.payload) + "\n").encode())
                 await self.process.stdin.drain()
                 read = asyncio.create_task(self.process.stdout.readline())
+                pressure = asyncio.create_task(self._watch_memory())
                 done, _ = await asyncio.wait(
-                    [read, task.future], timeout=max(0, task.payload["deadline"] - time.time()),
+                    [read, task.future, pressure], timeout=max(0, task.payload["deadline"] - time.time()),
                     return_when=asyncio.FIRST_COMPLETED,
                 )
+                if pressure in done:
+                    await self._stop_worker()
+                    raise MemoryError(pressure.result())
                 if read not in done or task.future.cancelled():
                     read.cancel()
                     await self._stop_worker()
@@ -143,6 +163,14 @@ class Scheduler:
                     read.cancel()
                 self.active = False
                 self.queue.task_done()
+                if pressure is not None:
+                    pressure.cancel()
+                    try:
+                        await pressure
+                    except asyncio.CancelledError:
+                        # Do not swallow shutdown arriving during watcher cleanup.
+                        if asyncio.current_task().cancelling():
+                            raise
 
     def status(self):
         return {"queue_depth": self.queue.qsize(), "queue_capacity": self.settings.queue_size,

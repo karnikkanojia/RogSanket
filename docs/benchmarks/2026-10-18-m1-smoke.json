@@ -1,0 +1,205 @@
+{
+  "experimental": true,
+  "release_validated": false,
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "device": "Metal GPU (worker)",
+  "versions": {
+    "mlx": "0.32.4",
+    "mlx-vlm": "0.7.8",
+    "transformers": "5.20.1"
+  },
+  "runs": [
+    {
+      "name": "cold_extraction",
+      "elapsed_seconds": 20.132047959021293,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 2786181120,
+        "rss_bytes": 48283648,
+        "swap_used_bytes": 3324641280,
+        "pressure": "normal"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1090781184,
+        "rss_bytes": 18644992,
+        "swap_used_bytes": 3534618624,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_febrile_illness\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.95}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "compatibility_fixes": [
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 3.03446537500713,
+        "prompt_tokens": 370,
+        "generated_tokens": 118,
+        "load_seconds": 8.726417624973692,
+        "preprocessing_seconds": 0.01152716705109924,
+        "worker_seconds": 20.064978957991116,
+        "first_token_seconds": 2.7966600420186296,
+        "generation_seconds": 8.287809667061083,
+        "prompt_tokens_per_second": 132.4323222745544,
+        "generation_tokens_per_second": 21.573563205702772,
+        "mlx_active_bytes": 2225818530,
+        "mlx_peak_bytes": 2659010836
+      },
+      "schema_valid": true
+    },
+    {
+      "name": "warm_extraction_1",
+      "elapsed_seconds": 7.616374916979112,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1090093056,
+        "rss_bytes": 19464192,
+        "swap_used_bytes": 3534618624,
+        "pressure": "warning"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1071677440,
+        "rss_bytes": 18694144,
+        "swap_used_bytes": 3526230016,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_febrile_illness\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.95}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "compatibility_fixes": [
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 0.007259916979819536,
+        "prompt_tokens": 370,
+        "generated_tokens": 118,
+        "load_seconds": 0.0,
+        "preprocessing_seconds": 0.016682666959241033,
+        "worker_seconds": 7.51891770795919,
+        "first_token_seconds": 1.956180457957089,
+        "generation_seconds": 7.494958125054836,
+        "prompt_tokens_per_second": 189.4298121787758,
+        "generation_tokens_per_second": 21.379325698579333,
+        "mlx_active_bytes": 2225818530,
+        "mlx_peak_bytes": 2626286868
+      },
+      "schema_valid": true
+    },
+    {
+      "name": "warm_extraction_2",
+      "elapsed_seconds": 7.118386832997203,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1087930368,
+        "rss_bytes": 18939904,
+        "swap_used_bytes": 3526230016,
+        "pressure": "warning"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1107804160,
+        "rss_bytes": 17989632,
+        "swap_used_bytes": 3526230016,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_febrile_illness\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.95}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "compatibility_fixes": [
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 0.0022044169018045068,
+        "prompt_tokens": 370,
+        "generated_tokens": 118,
+        "load_seconds": 0.0,
+        "preprocessing_seconds": 0.0038432920118793845,
+        "worker_seconds": 7.100397791946307,
+        "first_token_seconds": 2.0226952080847695,
+        "generation_seconds": 7.0943472920916975,
+        "prompt_tokens_per_second": 183.08146642456012,
+        "generation_tokens_per_second": 23.35527082354094,
+        "mlx_active_bytes": 2225818530,
+        "mlx_peak_bytes": 2626286868
+      },
+      "schema_valid": true
+    },
+    {
+      "name": "warm_extraction_3",
+      "elapsed_seconds": 7.338888708036393,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1107804160,
+        "rss_bytes": 18546688,
+        "swap_used_bytes": 3526230016,
+        "pressure": "warning"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1049378816,
+        "rss_bytes": 18350080,
+        "swap_used_bytes": 3517841408,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_febrile_illness\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.95}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "compatibility_fixes": [
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 0.0031762499129399657,
+        "prompt_tokens": 370,
+        "generated_tokens": 118,
+        "load_seconds": 0.0,
+        "preprocessing_seconds": 0.005217083031311631,
+        "worker_seconds": 7.315213707974181,
+        "first_token_seconds": 1.9548337500309572,
+        "generation_seconds": 7.306811167043634,
+        "prompt_tokens_per_second": 189.47740634741294,
+        "generation_tokens_per_second": 22.12800370359682,
+        "mlx_active_bytes": 2225818530,
+        "mlx_peak_bytes": 2626286868
+      },
+      "schema_valid": true
+    },
+    {
+      "name": "vision_smoke",
+      "elapsed_seconds": 3.2470863750204444,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1049378816,
+        "rss_bytes": 18776064,
+        "swap_used_bytes": 3517841408,
+        "pressure": "warning"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 497680384,
+        "rss_bytes": 14516224,
+        "swap_used_bytes": 3983015936,
+        "pressure": "normal"
+      },
+      "error": "Inference paused: insufficient unified-memory headroom",
+      "error_type": "MemoryError"
+    }
+  ]
+}

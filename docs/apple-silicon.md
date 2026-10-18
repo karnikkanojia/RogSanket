@@ -209,3 +209,71 @@ For rollback, stop the service, back up SQLite using its backup API (including
 WAL state), select the previous pinned artifact/worker, and restart. This is the
 first durable schema; do not overwrite an existing database during upgrades.
 Any future schema migration requires a backup and restoration test first.
+
+### Experimental 4B provisioning
+
+Provision the pinned public MLX candidate explicitly. This downloads approximately
+3.44 GB and verifies published LFS checksums before writing an integrity manifest:
+
+```sh
+HF_HUB_DISABLE_XET=1 .venv/bin/python scripts/provision_mlx.py
+.venv/bin/python scripts/probe_mlx.py \
+  --artifact models/medgemma-1.5-4b-it-4bit \
+  --allow-unvalidated-artifact --synthetic-image \
+  --output inference-results.json
+```
+
+The probe uses synthetic text, runs offline, and records one cold and three warm
+extractions, schema validity, timing, and memory. Add `--image /absolute/path`
+for a nonclinical vision smoke test. A smoke test does not establish checkpoint
+parity or clinical accuracy. Both parity flags remain false; FastAPI and the Swift
+worker continue to reject this artifact for production use. The explicit probe
+flag permits experimental execution while retaining checksum validation.
+
+The candidate is `mlx-community/medgemma-1.5-4b-it-4bit` at
+`762746b7a72b0b68dd8fa3f9aea5dc3980674d23`. Its model card reports conversion with
+mlx-vlm 0.3.9; the installed runtime is 0.7.8. Original Google checkpoint metadata
+access returned `GatedRepoError` with the configured account during provisioning.
+Reference parity requires account access and independent fixtures before promotion.
+
+### First real M1 inference results
+
+The pinned candidate passed upstream weight checksum verification. Four identical
+synthetic encounter extractions produced schema-valid JSON with a 370-token prompt
+and 118 generated tokens. End-to-end cold latency was 20.13 seconds; warm latencies
+were 7.62, 7.12 and 7.34 seconds. Decode throughput was 21–23 tokens/second. Peak
+MLX allocation was 2,659,010,836 bytes, excluding other applications and non-MLX
+allocations. The raw synthetic-only record is in
+`docs/benchmarks/2026-10-18-m1-smoke.json`.
+
+Lazy loading leaves unused vision weights unevaluated for text requests; the
+allocator cache is bounded to 128 MiB. Schema-constrained decoding uses the pinned
+MLX-VLM llguidance implementation for extraction. Schema validity does not imply
+clinical correctness. Report generation remains unconstrained and rejects
+incomplete reasoning blocks rather than presenting them as final answers.
+
+A library compatibility correction derives Gemma 3's image scaling dimension from
+`text_config.hidden_size` (2560). MLX-VLM 0.7.8 otherwise defaults to 2048 for this
+artifact. A synthetic tensor check showed image values incorrectly multiplied by
+1.1171875 before correction and 1.0 afterward. Provenance lists the correction.
+This arithmetic check does not replace image checkpoint/reference parity.
+
+The first eager-load run reached critical system pressure and increased swap by
+more than 2 GB. After closing applications, the lazy text run started with 2.79 GB
+available and about 3.32 GB pre-existing swap. Swap grew about 210 MB on cold load,
+then remained stable during three warm extractions. The subsequent image request
+crossed the 512 MiB available-memory admission floor and was terminated. Neither
+this short run nor its warm timings establish the sustained-workload release gate.
+The scheduler now polls admission once per second during active execution and
+kills the worker on failure. It also retains deadline and cancellation enforcement.
+
+Production parity flags remain false. Original Google checkpoint metadata access
+is gated for the configured account. No clinical, full vision, 100-request, or
+30-minute soak result is claimed, and these results do not promote the default.
+
+A final text-only rerun recorded `Device(gpu, 0)` and worker RSS explicitly.
+Cold extraction took 17.89 seconds and warm extraction 7.54 seconds, with both
+outputs schema-valid. Peak MLX allocation was 2.71 GB. System swap decreased
+across this short rerun; this is not a soak result. See
+`docs/benchmarks/2026-10-18-m1-text.json`. RSS is reported separately from MLX
+allocations and must not be added to them as independent memory pools.

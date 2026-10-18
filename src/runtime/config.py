@@ -37,7 +37,7 @@ class Settings:
             if url.scheme == "http" and url.hostname not in {"localhost", "127.0.0.1", "::1"}:
                 raise ValueError("Remote reporting requires HTTPS outside localhost")
 
-    def manifest(self):
+    def manifest(self, *, require_parity=True):
         import json
         if not self.artifact:
             raise RuntimeError("EPICAST_ARTIFACT must name a verified local artifact directory")
@@ -47,7 +47,7 @@ class Settings:
             raise RuntimeError("Artifact base must be google/medgemma-1.5-4b-it")
         if not manifest.get("revision") or manifest.get("quantization_bits") != 4:
             raise RuntimeError("Artifact requires a pinned revision and four-bit weights")
-        if not manifest.get("text_parity_passed") or not manifest.get("image_parity_passed"):
+        if require_parity and (not manifest.get("text_parity_passed") or not manifest.get("image_parity_passed")):
             raise RuntimeError("Artifact text/image parity has not passed")
         # Reject unverified or modified files, including processor and tokenizer assets.
         import hashlib
@@ -56,7 +56,8 @@ class Settings:
             raise RuntimeError("Artifact requires checksums for weights and processor assets")
         required = {str(path.relative_to(root)) for path in root.rglob("*")
                     if path.is_file() and (path.suffix in {".safetensors", ".json", ".model", ".txt", ".jinja"})
-                    and path.name != "epicast-artifact.json"}
+                    and path.name != "epicast-artifact.json"
+                    and ".cache" not in path.relative_to(root).parts}
         if not {"config.json", "tokenizer_config.json"}.issubset(files) or not required.issubset(files):
             raise RuntimeError("Artifact checksums must cover all weights, tokenizer and processor files")
         config = json.loads((root / "config.json").read_text())

@@ -1,0 +1,103 @@
+{
+  "experimental": true,
+  "release_validated": false,
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "memory_scope": "Scheduler RSS; worker RSS and MLX allocations are in provenance",
+  "versions": {
+    "mlx": "0.32.4",
+    "mlx-vlm": "0.7.8",
+    "transformers": "5.20.1"
+  },
+  "runs": [
+    {
+      "name": "cold_extraction",
+      "elapsed_seconds": 17.8944623330608,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 3334111232,
+        "rss_bytes": 43663360,
+        "swap_used_bytes": 3605397504,
+        "pressure": "normal"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1126825984,
+        "rss_bytes": 22020096,
+        "swap_used_bytes": 3597008896,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_febrile_illness\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.95}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "device": "Device(gpu, 0)",
+        "worker_rss_bytes": 2412003328,
+        "compatibility_fixes": [
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 2.0113463330781087,
+        "prompt_tokens": 370,
+        "generated_tokens": 118,
+        "load_seconds": 8.150524709024467,
+        "preprocessing_seconds": 0.008890917059034109,
+        "worker_seconds": 17.82896674994845,
+        "first_token_seconds": 2.3144103339873254,
+        "generation_seconds": 7.6535463749896735,
+        "prompt_tokens_per_second": 160.03361570389796,
+        "generation_tokens_per_second": 22.19111617796072,
+        "mlx_active_bytes": 2225818530,
+        "mlx_peak_bytes": 2705326402
+      },
+      "schema_valid": true
+    },
+    {
+      "name": "warm_extraction_1",
+      "elapsed_seconds": 7.535123415989801,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1127890944,
+        "rss_bytes": 22577152,
+        "swap_used_bytes": 3597008896,
+        "pressure": "warning"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1193885696,
+        "rss_bytes": 21905408,
+        "swap_used_bytes": 3555065856,
+        "pressure": "normal"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_febrile_illness\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.95}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "device": "Device(gpu, 0)",
+        "worker_rss_bytes": 2293252096,
+        "compatibility_fixes": [
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 0.003693915903568268,
+        "prompt_tokens": 370,
+        "generated_tokens": 118,
+        "load_seconds": 0.0,
+        "preprocessing_seconds": 0.013192957965657115,
+        "worker_seconds": 7.424083165940829,
+        "first_token_seconds": 1.9640824170783162,
+        "generation_seconds": 7.407180875074118,
+        "prompt_tokens_per_second": 188.51812122004608,
+        "generation_tokens_per_second": 21.76566769984134,
+        "mlx_active_bytes": 2225818530,
+        "mlx_peak_bytes": 2626286868
+      },
+      "schema_valid": true
+    }
+  ]
+}

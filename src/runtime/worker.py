@@ -9,6 +9,15 @@ import sys
 import time
 
 
+def final_answer(text):
+    """Never return a partial reasoning block as a clinical answer."""
+    if "<unused94>" in text:
+        if "<unused95>" not in text:
+            raise RuntimeError("Generation exhausted its budget before producing a final answer")
+        return text.rsplit("<unused95>", 1)[1].strip()
+    return text
+
+
 class Worker:
     def __init__(self, settings):
         self.settings = settings
@@ -18,6 +27,7 @@ class Worker:
         self.siglip = self.siglip_processor = None
         self.asr = None
         self.load_seconds = 0.0
+        self.compatibility_fixes = []
 
     def unload(self):
         self.model = self.processor = self.siglip = self.siglip_processor = self.asr = None
@@ -39,13 +49,28 @@ class Worker:
             raise RuntimeError("Only the verified MLX runtime is currently enabled")
         start = time.monotonic()
         self.manifest = self.settings.manifest()
+        import mlx.core as mx
+        # Leave room for the API and desktop. Lazy loading avoids evaluating
+        # unused vision weights during a text-only encounter.
+        mx.set_cache_limit(128 * 1024**2)
         from mlx_vlm import load
-        self.model, self.processor = load(self.settings.artifact)
+        self.model, self.processor = load(self.settings.artifact, lazy=True)
+        self.compatibility_fixes = []
+        if self.model.config.model_type == "gemma3":
+            # mlx-vlm 0.7.8 defaults the multimodal scaling dimension to 2048,
+            # while this checkpoint's text embeddings have 2560 dimensions.
+            # The image division must cancel the language model's embedding
+            # scale; otherwise image features receive a spurious 1.118x gain.
+            hidden_size = self.model.config.text_config.hidden_size
+            if self.model.config.hidden_size != hidden_size:
+                self.model.config.hidden_size = hidden_size
+                self.compatibility_fixes.append("gemma3_image_scale_hidden_size")
         self.active = "mlx"
         self.load_seconds = time.monotonic() - start
 
     def generate(self, request):
         request_start = time.monotonic()
+        loaded_now = self.model is None
         self.load()
         preprocessing_start = time.monotonic()
         import mlx.core as mx
@@ -76,6 +101,20 @@ class Worker:
         output = min(request.get("max_tokens", 512), 1024)
         if output < 1 or tokens + output > self.settings.context_tokens:
             raise ValueError("Input plus output exceeds the 4096-token text budget")
+        constraint_start = time.monotonic()
+        structured = request.get("task") == "extraction"
+        logits_processors = []
+        if structured:
+            from mlx_vlm.structured import build_json_schema_logits_processor
+            from src.data.syndromic_schema import SyndromicSignal
+            schema = SyndromicSignal.model_json_schema()
+            schema["properties"]["syndrome_category"]["enum"] = [
+                "acute_watery_diarrhea", "acute_bloody_diarrhea", "acute_febrile_illness",
+                "acute_respiratory_infection", "acute_neurological_syndrome", "acute_rash_fever",
+                "acute_hemorrhagic_fever", "unexplained_cluster",
+            ]
+            tokenizer = getattr(self.processor, "tokenizer", self.processor)
+            logits_processors.append(build_json_schema_logits_processor(tokenizer, schema))
         start = time.monotonic()
         mx.reset_peak_memory()
         first = None
@@ -85,7 +124,7 @@ class Worker:
             for result in stream_generate(
                 self.model, self.processor, prompt, image=image,
                 max_tokens=output, temperature=request.get("temperature", 0.0),
-                prefill_step_size=256, **prepared,
+                prefill_step_size=256, logits_processors=logits_processors, **prepared,
             ):
                 if time.time() > request["deadline"]:
                     raise TimeoutError("Inference deadline exceeded")
@@ -94,11 +133,17 @@ class Worker:
                 count = result.generation_tokens
                 tokens = result.prompt_tokens
             mx.synchronize()
-            return {"text": "".join(text), "provenance": {
+            answer = final_answer("".join(text))
+            import psutil
+            return {"text": answer, "provenance": {
                 "model": self.manifest["base_model"], "revision": self.manifest["revision"],
                 "backend": "mlx-vlm", "quantization": "4bit", "location": "local",
+                "device": str(mx.default_device()),
+                "worker_rss_bytes": psutil.Process().memory_info().rss,
+                "compatibility_fixes": self.compatibility_fixes, "structured_output": structured,
+                "constraint_setup_seconds": start - constraint_start,
                 "prompt_tokens": tokens, "generated_tokens": count,
-                "load_seconds": self.load_seconds,
+                "load_seconds": self.load_seconds if loaded_now else 0.0,
                 "preprocessing_seconds": preprocessing_seconds,
                 "worker_seconds": time.monotonic() - request_start,
                 "first_token_seconds": first - start if first else None,
@@ -157,9 +202,9 @@ class Worker:
         return getattr(self, operation)(request)
 
 
-def main():
+def main(settings=None):
     from .config import Settings
-    worker = Worker(Settings.from_env())
+    worker = Worker(settings or Settings.from_env())
     # Third-party progress output must never corrupt protocol stdout.
     output = sys.stdout
     sys.stdout = sys.stderr
@@ -170,6 +215,7 @@ def main():
             result = {"error": str(exc), "error_type": type(exc).__name__}
         output.write(json.dumps(result) + "\n")
         output.flush()
+    worker.unload()
 
 
 if __name__ == "__main__":
