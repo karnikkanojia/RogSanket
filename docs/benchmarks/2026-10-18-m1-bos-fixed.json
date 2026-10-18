@@ -1,0 +1,107 @@
+{
+  "experimental": true,
+  "release_validated": false,
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "memory_scope": "Scheduler RSS; worker RSS and MLX allocations are in provenance",
+  "versions": {
+    "mlx": "0.32.4",
+    "mlx-vlm": "0.7.8",
+    "transformers": "5.20.1"
+  },
+  "runs": [
+    {
+      "name": "cold_extraction",
+      "elapsed_seconds": 18.343534124898724,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1981300736,
+        "rss_bytes": 43728896,
+        "swap_used_bytes": 2892365824,
+        "pressure": "normal"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1116962816,
+        "rss_bytes": 16531456,
+        "swap_used_bytes": 3601989632,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_respiratory_infection\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.98}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "device": "Device(gpu, 0)",
+        "worker_rss_bytes": 2312634368,
+        "compatibility_fixes": [
+          "gemma3_template_owns_bos",
+          "gemma3_forward_image_tokenizer_flags",
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 2.0441163340583444,
+        "prompt_tokens": 369,
+        "generated_tokens": 117,
+        "load_seconds": 8.387214416987263,
+        "preprocessing_seconds": 0.009678582893684506,
+        "worker_seconds": 18.27295191702433,
+        "first_token_seconds": 2.8422146249795333,
+        "generation_seconds": 7.827182249980979,
+        "prompt_tokens_per_second": 129.933319546255,
+        "generation_tokens_per_second": 23.566184410565608,
+        "mlx_active_bytes": 2225818522,
+        "mlx_peak_bytes": 2568576198
+      },
+      "schema_valid": true
+    },
+    {
+      "name": "warm_extraction_1",
+      "elapsed_seconds": 7.087931458023377,
+      "memory_before": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1118060544,
+        "rss_bytes": 17268736,
+        "swap_used_bytes": 3601989632,
+        "pressure": "warning"
+      },
+      "memory_after": {
+        "total_bytes": 8589934592,
+        "available_bytes": 1114308608,
+        "rss_bytes": 16777216,
+        "swap_used_bytes": 3576823808,
+        "pressure": "warning"
+      },
+      "text": "{\"symptoms\": [\"fever\", \"cough\"], \"symptom_onset_days\": 3, \"syndrome_category\": \"acute_respiratory_infection\", \"secondary_syndromes\": [], \"severity\": \"mild\", \"age_group\": \"adult\", \"sex\": \"female\", \"icd10_codes\": [], \"reportable_conditions_flagged\": [], \"travel_history\": null, \"contact_history\": null, \"cluster_indicator\": false, \"confidence_score\": 0.98}",
+      "provenance": {
+        "model": "google/medgemma-1.5-4b-it",
+        "revision": "762746b7a72b0b68dd8fa3f9aea5dc3980674d23",
+        "backend": "mlx-vlm",
+        "quantization": "4bit",
+        "location": "local",
+        "device": "Device(gpu, 0)",
+        "worker_rss_bytes": 2312404992,
+        "compatibility_fixes": [
+          "gemma3_template_owns_bos",
+          "gemma3_forward_image_tokenizer_flags",
+          "gemma3_image_scale_hidden_size"
+        ],
+        "structured_output": true,
+        "constraint_setup_seconds": 0.004504292039200664,
+        "prompt_tokens": 369,
+        "generated_tokens": 117,
+        "load_seconds": 0.0,
+        "preprocessing_seconds": 0.0102697080001235,
+        "worker_seconds": 6.965288124978542,
+        "first_token_seconds": 1.9222872079117224,
+        "generation_seconds": 6.950499124941416,
+        "prompt_tokens_per_second": 192.12009125822735,
+        "generation_tokens_per_second": 23.362276735352253,
+        "mlx_active_bytes": 2225818522,
+        "mlx_peak_bytes": 2626286860
+      },
+      "schema_valid": true
+    }
+  ]
+}

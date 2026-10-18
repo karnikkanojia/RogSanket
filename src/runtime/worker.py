@@ -9,6 +9,27 @@ import sys
 import time
 
 
+def chat_add_special_tokens(processor, prompt):
+    """Gemma's rendered template owns BOS; never tokenize it a second time."""
+    tokenizer = getattr(processor, "tokenizer", processor)
+    bos = getattr(tokenizer, "bos_token", None)
+    if not bos or not prompt.startswith(bos):
+        raise RuntimeError("Gemma chat template must include its beginning-of-sequence token")
+    return False
+
+
+def prepare_gemma_inputs(processor, prompt, image=None):
+    """Preserve explicit tokenizer flags through MLX's multimodal adapter."""
+    add_special_tokens = chat_add_special_tokens(processor, prompt)
+    if image is not None:
+        # mlx-vlm 0.7.8 process_inputs drops add_special_tokens when a
+        # processor exposes it through **kwargs rather than its signature.
+        return processor(text=prompt, images=[image], padding=True,
+            add_special_tokens=add_special_tokens, return_tensors="mlx")
+    from mlx_vlm import prepare_inputs
+    return prepare_inputs(processor, prompts=prompt, add_special_tokens=add_special_tokens)
+
+
 def final_answer(text):
     """Never return a partial reasoning block as a clinical answer."""
     if "<unused94>" in text:
@@ -55,7 +76,7 @@ class Worker:
         mx.set_cache_limit(128 * 1024**2)
         from mlx_vlm import load
         self.model, self.processor = load(self.settings.artifact, lazy=True)
-        self.compatibility_fixes = []
+        self.compatibility_fixes = ["gemma3_template_owns_bos", "gemma3_forward_image_tokenizer_flags"]
         if self.model.config.model_type == "gemma3":
             # mlx-vlm 0.7.8 defaults the multimodal scaling dimension to 2048,
             # while this checkpoint's text embeddings have 2560 dimensions.
@@ -74,8 +95,7 @@ class Worker:
         self.load()
         preprocessing_start = time.monotonic()
         import mlx.core as mx
-        from mlx_vlm import stream_generate, prepare_inputs
-        from mlx_vlm.utils import should_add_special_tokens
+        from mlx_vlm import stream_generate
         from mlx_vlm.prompt_utils import apply_chat_template
         from PIL import Image
         import base64
@@ -91,9 +111,7 @@ class Worker:
             image = image.convert("RGB")
         messages = request["messages"]
         prompt = apply_chat_template(self.processor, self.model.config, messages, num_images=1 if image else 0)
-        inputs = prepare_inputs(self.processor, images=image, prompts=prompt,
-            image_token_index=getattr(self.model.config, "image_token_index", None),
-            add_special_tokens=should_add_special_tokens(self.model.config.model_type, self.processor))
+        inputs = prepare_gemma_inputs(self.processor, prompt, image)
         tokens = int(inputs["input_ids"].size)
         prepared = {key: value for key, value in inputs.items() if key != "attention_mask"}
         prepared["mask"] = inputs.get("attention_mask")

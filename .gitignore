@@ -50,3 +50,6 @@ native/**/dist/
 
 models/medgemma-1.5-4b-it-4bit/
 inference-results*.json
+
+models/medgemma-1.5-4b-reference/
+processor-parity-results.json

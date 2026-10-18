@@ -1,0 +1,1057 @@
+{
+  "processor_parity_passed": true,
+  "reference_revision": [
+    "91850547d9f0b2fdd21aa7c5f4f3d1a8a52c243b"
+  ],
+  "candidate_revision": [
+    "762746b7a72b0b68dd8fa3f9aea5dc3980674d23"
+  ],
+  "reference_assets_sha256": {
+    "added_tokens.json": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
+    "chat_template.jinja": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "config.json": "300c724c2c1fcdea39f1e21865cb1b14a605f1e3bb5ef50550faaa48da944fc8",
+    "generation_config.json": "921a391e0d387377b4c4a05273a68b7bc2196cf2a272ee605007853ea37f3224",
+    "model.safetensors.index.json": "77f4b67de084c31c7bcd373b039908108eee6c6181607e6d53da730e5f0bc659",
+    "preprocessor_config.json": "5b2f684b616a25f3cd4a700e5e471a07fcaabc5ec07871d2231b7e376e8648ce",
+    "processor_config.json": "3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53",
+    "special_tokens_map.json": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
+    "tokenizer.json": "7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c",
+    "tokenizer.model": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+    "tokenizer_config.json": "88269475414d45d3e59892d3519b0d4e28ec6416fecf6b523fb986cbe452075f"
+  },
+  "candidate_assets_sha256": {
+    "added_tokens.json": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
+    "chat_template.jinja": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "config.json": "74ebe09dd7fdf049d05698f3e701fdb3d970e1a74cf41fbeab0dbc2cd95f33e6",
+    "generation_config.json": "d732b63445d1a422368e539108f2a070b258239ebc091558560cc4c470f925d3",
+    "model.safetensors.index.json": "77f4b67de084c31c7bcd373b039908108eee6c6181607e6d53da730e5f0bc659",
+    "preprocessor_config.json": "5b2f684b616a25f3cd4a700e5e471a07fcaabc5ec07871d2231b7e376e8648ce",
+    "processor_config.json": "3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53",
+    "special_tokens_map.json": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
+    "tokenizer.json": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795",
+    "tokenizer.model": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+    "tokenizer_config.json": "120c4a25aed6436edaac2e3966c9aa026bc13b5f7d3d9a81fc7afe2569b9e28b"
+  },
+  "versions": {
+    "transformers": "5.20.1",
+    "mlx-vlm": "0.7.8",
+    "Pillow": "13.0.0"
+  },
+  "reference_image_backend": "PIL",
+  "candidate_image_backend": "PIL",
+  "reference_processor": "transformers.models.gemma3.processing_gemma3.Gemma3Processor",
+  "candidate_processor": "mlx_vlm.models.gemma3.processing_gemma3.Gemma3Processor",
+  "vocabulary_mapping_equal": true,
+  "special_token_ids_reference_only": [],
+  "special_token_ids_candidate_only": [],
+  "weight_output_parity_passed": false,
+  "release_validated": false,
+  "cases": [
+    {
+      "name": "text_0",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_1",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_2",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_3",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_4",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_5",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_6",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_7",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_8",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_9",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_10",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_11",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_12",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_13",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_14",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_15",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_16",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_17",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_18",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_19",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_20",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_21",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_22",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_23",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_24",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_25",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_26",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_27",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_28",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_29",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_30",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_31",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_32",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_33",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_34",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_35",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_36",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_37",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_38",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_39",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_40",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_41",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_42",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_43",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_44",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_45",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_46",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_47",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_48",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_49",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_50",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_51",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "text_52",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "retry",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "square",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "pixel_values": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "wide",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "pixel_values": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "tall",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "pixel_values": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "gray",
+      "prompt_equal": true,
+      "tensors": {
+        "input_ids": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "pixel_values": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        },
+        "attention_mask": {
+          "shape_equal": true,
+          "max_abs_error": 0.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    }
+  ]
+}

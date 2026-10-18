@@ -203,7 +203,7 @@ or Swift gates.
 Run an offline network audit after provisioning, then repeat quality and soak
 checks on every promoted artifact. Compare a same-checkpoint llama.cpp Metal
 build separately; different models or quantization levels are not speed evidence.
-No model benchmark or quality result has been asserted by this implementation.
+No validated clinical quality or cross-backend speedup has been established.
 
 For rollback, stop the service, back up SQLite using its backup API (including
 WAL state), select the previous pinned artifact/worker, and restart. This is the
@@ -233,8 +233,9 @@ flag permits experimental execution while retaining checksum validation.
 The candidate is `mlx-community/medgemma-1.5-4b-it-4bit` at
 `762746b7a72b0b68dd8fa3f9aea5dc3980674d23`. Its model card reports conversion with
 mlx-vlm 0.3.9; the installed runtime is 0.7.8. Original Google checkpoint metadata
-access returned `GatedRepoError` with the configured account during provisioning.
-Reference parity requires account access and independent fixtures before promotion.
+access initially returned `GatedRepoError`. Access is now enabled and the
+processor comparisons below pass. Model-output parity still requires independent
+reference execution before promotion.
 
 ### First real M1 inference results
 
@@ -267,8 +268,9 @@ this short run nor its warm timings establish the sustained-workload release gat
 The scheduler now polls admission once per second during active execution and
 kills the worker on failure. It also retains deadline and cancellation enforcement.
 
-Production parity flags remain false. Original Google checkpoint metadata access
-is gated for the configured account. No clinical, full vision, 100-request, or
+Production parity flags remain false. At the time of this first run, original
+checkpoint metadata access was gated; the processor verification below resolves
+that access issue. No clinical, full vision, 100-request, or
 30-minute soak result is claimed, and these results do not promote the default.
 
 A final text-only rerun recorded `Device(gpu, 0)` and worker RSS explicitly.
@@ -277,3 +279,51 @@ outputs schema-valid. Peak MLX allocation was 2.71 GB. System swap decreased
 across this short rerun; this is not a soak result. See
 `docs/benchmarks/2026-10-18-m1-text.json`. RSS is reported separately from MLX
 allocations and must not be added to them as independent memory pools.
+
+### Original checkpoint processor verification
+
+Original checkpoint access is enabled for the configured Hugging Face account.
+Tokenizer and processor assets were downloaded at revision
+`91850547d9f0b2fdd21aa7c5f4f3d1a8a52c243b`; no original model weights were downloaded.
+Provision only the pinned processor assets, then run the offline comparison:
+
+```sh
+.venv/bin/hf download google/medgemma-1.5-4b-it \
+  --revision 91850547d9f0b2fdd21aa7c5f4f3d1a8a52c243b \
+  --local-dir models/medgemma-1.5-4b-reference \
+  --include '*.json' '*.model' '*.jinja'
+.venv/bin/python scripts/check_processor_parity.py \
+  --reference models/medgemma-1.5-4b-reference \
+  --candidate models/medgemma-1.5-4b-it-4bit
+```
+
+All 58 cases pass: 50 inherited synthetic narratives, three additional text
+edge cases, a corrective chat turn, and four synthetic square/wide/tall/grayscale
+images. Prompts, vocabulary mappings, input token IDs and masks are exact matches.
+Image pixel tensors also match exactly using the explicit PIL backend. This
+certifies the tested preprocessing path, not every image backend or clinical input.
+The report records package versions and asset hashes at
+`docs/benchmarks/2026-10-18-processor-parity.json`.
+
+Reference and candidate processors run in separate processes. MLX globally patches
+AutoProcessor; comparing both in one process could silently compare MLX to itself.
+The tokenizer JSONs differ in raw image-token special flags, but effective vocabulary
+mappings and special-token IDs match after loading their complete configurations.
+
+The first comparison exposed duplicated BOS tokens on both text and image inputs.
+MLX-VLM's special-token heuristic did not find the template on its processor object,
+and its multimodal adapter dropped `add_special_tokens=False` for processors accepting
+that flag through `**kwargs`. The worker now validates that the rendered Gemma template
+owns BOS, disables extra special tokens, and calls the image processor directly to
+preserve the explicit flag. Both fixes appear in generation provenance.
+
+A corrected-tokenizer GPU rerun produced two schema-valid extractions in 18.34 seconds
+cold and 7.09 seconds warm, at approximately 23 tokens/second. Peak MLX allocation
+was 2.63 GB. The prompt contained 369 tokens rather than 370. Its syndrome label
+changed from the earlier duplicated-BOS run; neither output establishes clinical
+accuracy. Earlier records remain historical and do not certify the corrected path.
+See `docs/benchmarks/2026-10-18-m1-bos-fixed.json`.
+
+Processor verification does not set `text_parity_passed` or `image_parity_passed`.
+Reference model-output and clinical quality comparisons, vision memory validation,
+and the sustained workload gate remain required before production promotion.

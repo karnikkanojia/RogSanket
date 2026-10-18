@@ -340,3 +340,25 @@ def test_partial_reasoning_is_not_a_clinical_answer():
     assert final_answer('<unused94>thought\ninternal<unused95>{"symptoms": []}') == '{"symptoms": []}'
     with pytest.raises(RuntimeError, match='final answer'):
         final_answer('<unused94>thought\ntruncated')
+
+
+def test_gemma_chat_template_owns_bos():
+    from types import SimpleNamespace
+    from src.runtime.worker import chat_add_special_tokens
+    # MLX's processor has no template attribute; its tokenizer owns the template.
+    processor = SimpleNamespace(chat_template=None, tokenizer=SimpleNamespace(bos_token='<bos>'))
+    assert chat_add_special_tokens(processor, '<bos><start_of_turn>user\nfever') is False
+    with pytest.raises(RuntimeError, match='beginning-of-sequence'):
+        chat_add_special_tokens(processor, '<start_of_turn>user\nfever')
+
+
+def test_image_processor_receives_explicit_no_special_tokens():
+    from types import SimpleNamespace
+    from src.runtime.worker import prepare_gemma_inputs
+    class Processor:
+        tokenizer = SimpleNamespace(bos_token='<bos>')
+        def __call__(self, **kwargs):
+            assert kwargs['add_special_tokens'] is False
+            assert kwargs['images'] == ['synthetic-image']
+            return {'input_ids': 'processor-result'}
+    assert prepare_gemma_inputs(Processor(), '<bos>prompt', 'synthetic-image')['input_ids'] == 'processor-result'

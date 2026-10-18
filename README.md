@@ -17,8 +17,9 @@ Start with [the Apple Silicon runtime guide](docs/apple-silicon.md). It document
 `uv` setup, artifact checksums and reference gates, offline operation, API jobs,
 benchmarks, native builds, privacy, and remaining validation requirements.
 
-**Status:** real 4B MLX text inference demonstrated on the M1: 7.1–7.6 seconds
-for three warm synthetic extractions. The image probe exceeded available memory.
+**Status:** real 4B MLX text inference demonstrated on the M1: 7.1 seconds
+for a warm synthetic extraction after correcting tokenization. All 58 original
+HF/MLX processor comparisons pass. The image probe exceeded available memory.
 Checkpoint parity, clinical quality and sustained performance are not yet certified. Missing modalities return errors. No synthetic transcription, image
 classification, or cough result is presented as real inference. The HeAR classifier
 in this checkout lacks verified training provenance and remains blocked.
