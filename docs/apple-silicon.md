@@ -1,0 +1,211 @@
+# Apple Silicon runtime
+
+## Status
+
+The canonical API, process-isolated worker, durable storage, background jobs,
+web modality inputs, and native SwiftUI client are implemented. The MLX Python
+and experimental Swift workers use pinned library interfaces. Model quality,
+multimodal compatibility, sustained memory use, and throughput are **not yet
+certified**. The release must not be described as complete until all gates pass.
+
+The development machine is an M1 MacBook Pro with 8 GB unified memory. Local
+27B is unsupported. Its four-bit weights alone need about 13.5 GB before runtime
+overhead. Use optional remote 27B or local 4B report generation.
+
+## Install and run
+
+```bash
+./setup_local.sh
+EPICAST_ARTIFACT=/absolute/path/to/verified-4b .venv-apple/bin/python -m src.api.app
+cd frontend
+bun install --frozen-lockfile
+NEXT_PUBLIC_API_URL=http://localhost:8000 bun run build
+bun run start
+```
+
+The setup uses native ARM64 Python 3.14, matching the development environment.
+`requirements.txt` contains API dependencies. `requirements-apple.txt` adds model
+libraries. `requirements-training.txt` belongs in a separate CUDA environment. Setup syncs
+the complete `requirements-apple.lock`, resolved for macOS 14+ and Python 3.14.
+No startup, inference request, or setup script downloads model weights.
+Accept model terms and download a pinned snapshot explicitly before provisioning.
+Use only local paths. The worker sets Hugging Face and Transformers offline flags.
+
+Configuration:
+
+| Variable | Purpose |
+|---|---|
+| `EPICAST_DATABASE` | SQLite file; default `data/epicast.sqlite3` |
+| `EPICAST_ARTIFACT` | Verified four-bit multimodal MedGemma 1.5 4B directory |
+| `EPICAST_MEDASR_ARTIFACT` | Verified MedASR CTC directory |
+| `EPICAST_MEDSIGLIP_ARTIFACT` | Verified MedSigLIP directory |
+| `EPICAST_HEAR_ARTIFACT` | Verified HeAR waveform ONNX export and classifier |
+| `EPICAST_REMOTE_27B_URL` | Optional OpenAI-compatible chat-completions URL |
+| `EPICAST_REMOTE_TOKEN` | Optional authorization token; never persisted |
+| `EPICAST_ALLOWED_ORIGINS` | Comma-separated browser origins |
+| `EPICAST_BACKEND` | `mlx` by default; `swift` only after native parity |
+| `EPICAST_SWIFT_WORKER` | Absolute native worker executable when enabled |
+
+Bind to localhost by default. LAN deployment requires authentication and TLS at
+the deployment boundary. The RunPod handler is a transport adapter, configured
+with `EPICAST_API_URL`. It no longer loads its own duplicate model stack.
+The former Flask launcher starts the same FastAPI API on port 8000.
+
+## Provisioning and reference evidence
+
+Convert the exact accepted `google/medgemma-1.5-4b-it` snapshot using pinned
+`mlx-vlm==0.7.8`. Perform conversion on larger hardware if peak memory exceeds
+this Mac's budget. Check the installed converter's CLI with
+`python -m mlx_vlm.convert --help`; do not convert an unrelated Gemma checkpoint.
+Compare tokenizer output, chat template, image tokens, processor settings, text
+extraction, and image outputs against the original checkpoint. Save reference
+results and conversion details alongside the artifact. Existing LoRA weights
+require the identical original base; merge on suitable hardware before conversion.
+
+Each artifact contains `epicast-artifact.json`. This is an explicit release
+attestation, not an automatically inferred certificate. Never set parity fields
+without reference evidence. Hash all model, tokenizer, config, and processor
+files. Runtime rejects missing checksums and mismatches before loading.
+
+MedGemma manifest:
+
+```json
+{
+  "base_model": "google/medgemma-1.5-4b-it",
+  "revision": "EXACT_UPSTREAM_COMMIT",
+  "quantization_bits": 4,
+  "text_parity_passed": false,
+  "image_parity_passed": false,
+  "swift_parity_passed": false,
+  "sha256": {"config.json": "SHA256", "model.safetensors": "SHA256"}
+}
+```
+
+Auxiliary manifests specify `base_model`, exact `revision`, `sha256`, and
+`reference_parity_passed`. MedASR and MedSigLIP default to CPU; enable MPS only
+with `mps_parity_passed: true` after operator and output checks. MedSigLIP text
+embeddings are precomputed once per encoder load. Encoders are unloaded between
+tasks on 8 GB, trading reload latency for bounded residency.
+
+HeAR additionally requires:
+
+```json
+{
+  "base_model": "google/hear",
+  "revision": "EXACT_EXPORT_REVISION",
+  "reference_parity_passed": false,
+  "input": "waveform_16khz_2s",
+  "embedding_dimension": 512,
+  "classifier_training_provenance": "PATH_OR_HASH_OF_TRAINING_RECORD",
+  "labels": {"0": "healthy", "1": "symptomatic", "2": "COVID-19"},
+  "sha256": {"hear.onnx": "SHA256", "classifier.onnx": "SHA256"}
+}
+```
+
+The export must accept float32 `[1,32000]` waveforms at 16 kHz. The classifier
+must consume the encoder's exact embedding and export labeled probability maps.
+The example dimension is illustrative; use the verified classifier dimension.
+The existing `classifier.pkl` has no verified training contract in this checkout.
+It is deliberately never unpickled. The old padded/split mel windows and RMS
+classifier are not retained. ONNX CPU is the reference path. Core ML promotion
+requires a separately validated conversion and provider partition profile.
+
+## Scheduling, privacy, and failure behavior
+
+One active process task, eight pending tasks. Reports and multimodal workflows
+also have bounded durable job states. Cancellation kills active model work;
+the next request starts a clean worker. Worker crashes and deadlines do not kill
+the API. Model startup is lazy. Statistical surveillance and dashboard remain
+available without weights. Health reports artifact presence separately from
+actual worker loading and never asserts release validation.
+
+The Python worker starts with a 4096-token text budget, extraction output cap
+512, report cap 1024, and prefill chunks of 256. One image is allowed, at most
+16 megapixels. Clinical text is rejected rather than silently truncated.
+No prompt cache persists between encounters. All heavy modalities execute in
+the same serialized process lane. Loading an encoder first releases the LLM.
+
+Health reports API RSS, available system memory, swap, pressure, queue state,
+and last worker error. Unsupported system telemetry is `null`/`unknown`, never
+fabricated. Generated responses include MLX allocation and token telemetry.
+Do not infer total unified-memory use from API RSS. No wired-memory sysctl is
+changed. Admission rejects critical pressure or less than 512 MiB available;
+this is a safety floor, **not proof that a model fits**. The soak gate determines
+whether the profile is supportable.
+
+SQLite stores structured encounters, provenance, job states, and cached reports.
+Narratives, images, and audio are not persisted by the API. Failed extraction
+never creates an encounter. Multimodal extraction runs once and persists after
+all requested modality tasks succeed. No automatic multimodal confidence fusion
+is claimed. SQLite is not encrypted by this application; use OS disk encryption.
+
+Remote reporting is disabled unless configured. It sends district-level counts,
+alert evidence, and date, never encounter objects or raw media. A remote outage
+falls back to 4B and labels the reason. Remote deployment remains operator-owned.
+Reports are drafts, not validated forecasts. Counts and alert calculations remain
+deterministic. Cache keys include surveillance summary, prompt version, model
+manifest, and remote endpoint. Alert IDs remain stable within district/syndrome/week.
+
+## Native migration
+
+```bash
+swift build --package-path native/App
+swift run --package-path native/App EpiCast
+swift build --package-path native/Worker -c release -j 2
+```
+
+The SwiftUI executable uses the canonical API for intake, transcript review,
+media imports, microphone dictation, camera photos, dashboard, alerts, cancellable jobs, and reports. FastAPI remains
+the only database writer. Start the API separately. This is a development
+executable. Use `bash native/App/bundle.sh` to create an ad-hoc signed app bundle
+with camera/microphone usage descriptions. Developer ID signing, notarization,
+and packaged sidecar supervision remain distribution work. Capture requires the
+app bundle and OS permission; hardware capture has not been exercised here.
+
+The experimental worker uses `mlx-swift-lm==3.32.3` and the same newline JSON
+request/response protocol. The scheduler can select it for generation while
+retaining Python for auxiliary modalities; backend changes terminate the old
+process before starting another. Enable `swift` only after artifact-specific
+text, image, tokenizer, memory, and cancellation parity. The native manifest
+requires `swift_parity_passed: true`; no automatic promotion occurs.
+
+Do not port surveillance math or database ownership until Python/Swift fixture
+parity passes. Keep the web client supported. Core ML auxiliary conversion and
+removal of Python are subsequent gates, not current runtime claims.
+
+## Verification and rollback
+
+```bash
+.venv/bin/python -m pytest tests -q
+bun run --cwd frontend lint
+bun run --cwd frontend build
+.venv/bin/python scripts/evaluate_runtime.py --reference reference-results.json
+.venv/bin/python scripts/benchmark_runtime.py --samples 100 --soak-seconds 1800
+```
+
+Run evaluations against a **separate** SQLite database: benchmarks submit real
+structured test encounters. The frozen 50-example fixture covers all eight
+syndromes, but is synthetic and inherited from the original dataset. It is not
+clinical validation. Add independently reviewed negation, missing-detail,
+cluster, severe-presentation, dictation, photo, and cough reference fixtures
+before release. Evaluation failures score zero across all metrics.
+
+Required gates: schema validity >=99%; syndrome accuracy, symptom F1 and
+reportable recall within two percentage points of the same-checkpoint reference;
+ASR critical-term and word error checks; image/HeAR/classifier reference parity;
+100 measured requests after ten warm-ups; 30-minute soak with production frontend;
+extraction p95 <=30 seconds; 512-token report p95 <=120 seconds; health p95 <=250 ms;
+no OOM, sustained critical pressure, or sustained swap growth. The benchmark
+writes raw samples, benchmarks ten uncached reports with a 512-token cap, and
+fails when telemetry is unavailable. It does not certify modality, offline-network,
+or Swift gates.
+
+Run an offline network audit after provisioning, then repeat quality and soak
+checks on every promoted artifact. Compare a same-checkpoint llama.cpp Metal
+build separately; different models or quantization levels are not speed evidence.
+No model benchmark or quality result has been asserted by this implementation.
+
+For rollback, stop the service, back up SQLite using its backup API (including
+WAL state), select the previous pinned artifact/worker, and restart. This is the
+first durable schema; do not overwrite an existing database during upgrades.
+Any future schema migration requires a backup and restoration test first.

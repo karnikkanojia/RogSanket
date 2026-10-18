@@ -1,0 +1,51 @@
+# Implementation status
+
+## Verified on October 18, 2026
+
+- Development hardware: Apple M1, 8 GB unified memory, native ARM64 Python 3.14.
+- 18 model-free runtime tests pass: SQLite durability/privacy, bounded queue, process
+  cancellation, timeout/crash recovery, schema retry, aggregate-only remote
+  reporting, local fallback, offline routing, report cache, stable alert IDs,
+  artifact checksums, and explicit missing-model failures.
+- Next.js TypeScript check and production build pass.
+- Swift inference worker builds against pinned MLX Swift dependencies and returns
+  the expected missing-artifact JSON protocol error.
+- SwiftUI development client builds with media import, microphone dictation,
+  camera capture, transcript review, intake, dashboard, alerts and report jobs.
+- MLX Python imports successfully and executes a tiny array operation on
+  `Device(gpu, 0)`. This proves Metal access, not model performance.
+- Apple runtime dependencies are locked. Swift worker dependencies are pinned
+  and captured in `native/Worker/Package.resolved`.
+
+## Release gates still open
+
+No verified MedGemma 1.5 artifact, MedASR reference fixtures, MedSigLIP reference
+fixtures, or HeAR/classifier training contract was supplied in this checkout.
+The cached original MedGemma 4B is a different base checkpoint and cannot certify
+1.5. Runtime refuses to mark missing reference evidence as a pass.
+
+The following remain unverified: exact checkpoint/tokenizer/image parity;
+clinical extraction quality; ASR critical-term error; HeAR/classifier compatibility;
+Core ML export/provider profiling; full offline network audit; 100-request
+performance evaluation; 30-minute memory soak; 512-token report latency; native
+worker model parity; live camera/microphone hardware behavior; native UI visual
+review; Developer ID signing, notarization and packaged backend supervision.
+
+Core ML promotion and transfer of surveillance/database ownership to Swift are
+intentionally withheld until their prerequisite parity gates pass. Python remains
+the only storage owner and the default model worker. No inference speedup,
+clinical performance, or completed all-modality release is claimed.
+
+## Compatibility changes
+
+FastAPI on port 8000 is canonical. The old Flask launcher now starts it. The old
+RunPod script is a transport adapter requiring `EPICAST_API_URL`, not a CUDA model
+server. Legacy Flask `/v1/*`, RunPod `extract`/`fuse`, synthetic spectrogram output,
+and implicit demo modality responses are removed. Existing Next.js endpoint
+payloads remain compatible; report and encounter results gain provenance.
+Configure optional 27B separately. Existing local LoRA adapters must be merged
+against their original base on suitable hardware before conversion.
+
+SQLite is a new durable schema. Back it up before any future schema migration.
+Runtime artifacts and database files are ignored by Git. Original classifier
+weights are retained but never unpickled or presented as validated inference.

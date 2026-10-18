@@ -6,6 +6,27 @@
 
 ---
 
+## Current implementation: Apple Silicon
+
+The canonical application is Next.js plus FastAPI, with a process-isolated MLX
+worker and SQLite. The development M1 has **8 GB unified memory**. It supports a
+validated four-bit 4B artifact; local 27B is unsupported. Remote 27B is optional.
+A SwiftUI development client and experimental MLX Swift worker are included.
+
+Start with [the Apple Silicon runtime guide](docs/apple-silicon.md). It documents
+`uv` setup, artifact checksums and reference gates, offline operation, API jobs,
+benchmarks, native builds, privacy, and remaining validation requirements.
+
+**Status:** infrastructure implemented; model parity and performance are not yet
+certified. Missing modalities return errors. No synthetic transcription, image
+classification, or cough result is presented as real inference. The HeAR classifier
+in this checkout lacks verified training provenance and remains blocked.
+
+The architecture and competition narrative below describe the original project
+vision, not verified release capabilities. Diffusion forecasting, notarized distribution, and Core ML model promotion
+remain future work. Native capture requires OS permissions and hardware testing.
+This project originated from [the EpiCast Kaggle submission](https://www.kaggle.com/competitions/med-gemma-impact-challenge/writeups/new-writeup-1770830823676).
+
 ## The Problem
 
 Disease outbreaks in low-resource settings are detected **weeks too late**. Community health workers (CHWs) see early signals — unusual symptom clusters, sudden spikes in presentations — but lack tools to aggregate, analyze, and escalate. Traditional surveillance relies on manual reporting chains: paper forms → district offices → national databases. By the time data reaches epidemiologists, outbreaks have already spread.
@@ -189,23 +210,14 @@ covering WHO's priority syndromic surveillance categories:
 ## Setup & Installation
 
 ```bash
-# Clone and setup
-git clone <repo>
-cd epicast
-pip install -r requirements.txt
-
-# Set Hugging Face token (must have accepted MedGemma terms)
-export HF_TOKEN=your_token_here
-
-# Generate synthetic training data
-python scripts/generate_training_data.py
-
-# Run LoRA fine-tuning
-python scripts/run_finetune.py
-
-# Launch the app
-python -m src.api.app
+./setup_local.sh
+# After provisioning and reference validation:
+EPICAST_ARTIFACT=/absolute/verified/model .venv-apple/bin/python -m src.api.app
 ```
+
+Use [the runtime guide](docs/apple-silicon.md) for modality artifacts, the native
+client, background jobs, and validation. CUDA training uses a separate environment
+with `requirements-training.txt`.
 
 ---
 
