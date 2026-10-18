@@ -9,7 +9,6 @@ import time
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
@@ -41,9 +40,6 @@ async def lifespan(app):
 
 
 app = FastAPI(title="EpiCast API", version="2.0.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware,
-    allow_origins=os.getenv("EPICAST_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(","),
-    allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type"])
 
 
 @app.exception_handler(QueueFull)

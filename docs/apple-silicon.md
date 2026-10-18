@@ -3,7 +3,7 @@
 ## Status
 
 The canonical API, process-isolated worker, durable storage, background jobs,
-web modality inputs, and native SwiftUI client are implemented. The MLX Python
+native modality inputs, and SwiftUI client are implemented. The MLX Python
 and experimental Swift workers use pinned library interfaces. Model quality,
 multimodal compatibility, sustained memory use, and throughput are **not yet
 certified**. The release must not be described as complete until all gates pass.
@@ -17,10 +17,13 @@ overhead. Use optional remote 27B or local 4B report generation.
 ```bash
 ./setup_local.sh
 EPICAST_ARTIFACT=/absolute/path/to/verified-4b .venv-apple/bin/python -m src.api.app
-cd frontend
-bun install --frozen-lockfile
-NEXT_PUBLIC_API_URL=http://localhost:8000 bun run build
-bun run start
+```
+
+In another terminal:
+
+```bash
+bash native/App/bundle.sh
+open native/App/dist/EpiCast.app
 ```
 
 The setup uses native ARM64 Python 3.14, matching the development environment.
@@ -154,7 +157,7 @@ swift run --package-path native/App EpiCast
 swift build --package-path native/Worker -c release -j 2
 ```
 
-The SwiftUI app ports all four Next.js workflows with native navigation, charts,
+The SwiftUI app provides all four surveillance workflows with native navigation, charts,
 encounter tables, alert evidence, report export and connection settings. See
 [native UI setup and parity](native-ui.md). It uses the canonical API for intake, transcript review,
 media imports, microphone dictation, camera photos, dashboard, alerts, cancellable jobs, and reports. FastAPI remains
@@ -172,15 +175,14 @@ text, image, tokenizer, memory, and cancellation parity. The native manifest
 requires `swift_parity_passed: true`; no automatic promotion occurs.
 
 Do not port surveillance math or database ownership until Python/Swift fixture
-parity passes. Keep the web client supported. Core ML auxiliary conversion and
+parity passes. The browser client has been retired. Core ML auxiliary conversion and
 removal of Python are subsequent gates, not current runtime claims.
 
 ## Verification and rollback
 
 ```bash
 .venv/bin/python -m pytest tests -q
-bun run --cwd frontend lint
-bun run --cwd frontend build
+swift test --package-path native/App
 .venv/bin/python scripts/evaluate_runtime.py --reference reference-results.json
 .venv/bin/python scripts/benchmark_runtime.py --samples 100 --soak-seconds 1800
 ```
@@ -197,7 +199,7 @@ before release. Evaluation failures score zero across all metrics.
 Required gates: schema validity >=99%; syndrome accuracy, symptom F1 and
 reportable recall within two percentage points of the same-checkpoint reference;
 ASR critical-term and word error checks; image/HeAR/classifier reference parity;
-100 measured requests after ten warm-ups; 30-minute soak with production frontend;
+100 measured requests after ten warm-ups; 30-minute soak with the release SwiftUI app open;
 extraction p95 <=30 seconds; 512-token report p95 <=120 seconds; health p95 <=250 ms;
 no OOM, sustained critical pressure, or sustained swap growth. The benchmark
 writes raw samples, benchmarks ten uncached reports with a 512-token cap, and

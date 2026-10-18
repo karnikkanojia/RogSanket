@@ -11,3 +11,5 @@ uv venv --python 3.14 .venv-apple
 uv pip sync --python .venv-apple/bin/python requirements-apple.lock
 echo 'Runtime installed. Provision verified artifacts using docs/apple-silicon.md.'
 echo 'EPICAST_ARTIFACT=/absolute/model/path .venv-apple/bin/python -m src.api.app'
+echo 'Build the native UI in another terminal: bash native/App/bundle.sh'
+echo 'Open the app: open native/App/dist/EpiCast.app'

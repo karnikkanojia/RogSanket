@@ -1,10 +1,4 @@
-# Dependencies
-node_modules/
-
-# Next.js / frontend
-frontend/.next/
-frontend/out/
-frontend/node_modules/
+# Signing credentials
 *.jks
 *.p8
 *.p12
@@ -44,7 +38,6 @@ native/.build/
 benchmark-results.json
 evaluation-results.json
 
-frontend/tsconfig.tsbuildinfo
 native/**/.build/
 native/**/dist/
 

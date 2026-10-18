@@ -7,7 +7,7 @@
   cancellation, timeout/crash recovery, schema retry, aggregate-only remote
   reporting, local fallback, offline routing, report cache, stable alert IDs,
   artifact checksums, and explicit missing-model failures.
-- Next.js TypeScript check and production build pass.
+- The Next.js client is retired and removed; SwiftUI is the supported UI.
 - Swift inference worker builds against pinned MLX Swift dependencies and returns
   the expected missing-artifact JSON protocol error.
 - SwiftUI ports all four browser workflows with a typed API client, native sidebar,
@@ -66,7 +66,7 @@ clinical performance, or completed all-modality release is claimed.
 FastAPI on port 8000 is canonical. The old Flask launcher now starts it. The old
 RunPod script is a transport adapter requiring `EPICAST_API_URL`, not a CUDA model
 server. Legacy Flask `/v1/*`, RunPod `extract`/`fuse`, synthetic spectrogram output,
-and implicit demo modality responses are removed. Existing Next.js endpoint
+and implicit demo modality responses are removed. Existing API endpoint
 payloads remain compatible; report and encounter results gain provenance.
 Configure optional 27B separately. Existing local LoRA adapters must be merged
 against their original base on suitable hardware before conversion.

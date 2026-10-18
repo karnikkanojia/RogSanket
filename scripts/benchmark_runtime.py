@@ -1,6 +1,6 @@
 """API benchmark and 30-minute soak. Never substitutes generated test results.
 
-Run against a provisioned service with the production frontend open.
+Run against a provisioned service with the release SwiftUI app open.
 Output includes every failure and memory snapshot; failed requests count against latency gates.
 """
 import argparse

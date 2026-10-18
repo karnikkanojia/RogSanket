@@ -1,9 +1,10 @@
 # Native macOS interface
 
-The four Next.js routes now have SwiftUI counterparts. The native app can be used
-without Next.js, Node or a browser. FastAPI and the isolated model worker remain
+SwiftUI is the supported UI. The four former Next.js routes have native
+counterparts, and the browser client has been removed. No Node or browser is needed.
+FastAPI and the isolated model worker remain
 separate processes; this change does not move database or inference ownership.
-The web client remains available as a compatibility client.
+The API contracts remain available to native clients and tools.
 
 ## Build and launch
 
@@ -35,7 +36,7 @@ use an ephemeral URLSession without a disk cache.
 
 ## Workflow parity
 
-| Browser route | Native view | Behavior |
+| Former browser route | Native view | Behavior |
 | --- | --- | --- |
 | `/` | Overview | Encounter count, district count, alert totals, syndrome chart, severity posture, last-update time, recent-encounter table and refresh |
 | `/alerts` | Active alerts | Actual API syndrome/district/count fields, severity badges, timestamps, evidence and baseline disclosure; adds search and severity filtering |

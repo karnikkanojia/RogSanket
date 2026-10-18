@@ -8,11 +8,11 @@
 
 ## Current implementation: Apple Silicon
 
-The application now has a complete SwiftUI counterpart to its four Next.js
-workflows. Both clients use canonical FastAPI, a process-isolated MLX worker and
-SQLite. See [native UI setup and parity](docs/native-ui.md). The development M1 has **8 GB unified memory**. It supports a
-validated four-bit 4B artifact; local 27B is unsupported. Remote 27B is optional.
-The native UI can run without Next.js. The MLX Swift inference worker remains
+SwiftUI is the application UI, backed by FastAPI, a process-isolated MLX worker
+and SQLite. The retired Next.js client has been removed. See
+[native UI setup](docs/native-ui.md). The development M1 has **8 GB unified
+memory**. Local operation targets a verified four-bit 4B artifact; local 27B is
+unsupported. Remote 27B is optional. The MLX Swift inference worker remains
 experimental.
 
 Start with [the Apple Silicon runtime guide](docs/apple-silicon.md). It documents
@@ -98,70 +98,44 @@ EpiCast is an **agentic disease surveillance system** that transforms unstructur
 
 ## Project Structure
 
-```
+```text
 epicast/
-├── README.md
-├── requirements.txt
-├── configs/
-│   ├── model_config.yaml          # Model paths, LoRA config, inference params
-│   └── surveillance_config.yaml    # Disease definitions, alert thresholds
+├── native/
+│   ├── App/                      # SwiftUI macOS application
+│   └── Worker/                   # Experimental MLX Swift inference worker
 ├── src/
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   ├── intake_agent.py         # MedASR + MedGemma 4B syndromic extraction
-│   │   ├── image_triage_agent.py   # MedSigLIP + MedGemma 4B image analysis
-│   │   ├── surveillance_agent.py   # MedGemma 27B analytics + forecasting
-│   │   └── alert_agent.py          # Escalation, FHIR reports, advisories
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── medgemma_loader.py      # Model loading utilities (4B, 27B, quantized)
-│   │   ├── medasr_loader.py        # MedASR speech-to-text
-│   │   ├── medsiglip_loader.py     # MedSigLIP image encoder
-│   │   └── forecaster.py           # Time-series forecasting (diffusion / statistical)
-│   ├── data/
-│   │   ├── __init__.py
-│   │   ├── syndromic_schema.py     # Pydantic schemas for extracted signals
-│   │   ├── synthetic_generator.py  # Generate training data for LoRA fine-tune
-│   │   └── disease_definitions.py  # WHO ICD-10 syndromic surveillance categories
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   └── anomaly_detection.py    # CUSUM, Poisson thresholds
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── app.py                  # FastAPI backend
-│   └── frontend/                   # Next.js + shadcn surveillance dashboard
-├── notebooks/
-│   ├── 01_syndromic_extraction_baseline.ipynb
-│   ├── 02_lora_finetune_syndromic.ipynb
-│   ├── 03_image_triage_demo.ipynb
-│   ├── 04_surveillance_analytics.ipynb
-│   └── 05_full_pipeline_demo.ipynb
-├── scripts/
-│   ├── generate_training_data.py
-│   ├── run_finetune.py
-│   └── run_evaluation.py
-├── tests/
-│   └── test_extraction.py
-└── docs/
-    ├── technical_overview.md        # 3-page writeup for submission
-    └── architecture_diagram.png
+│   ├── api/                      # Canonical FastAPI service
+│   ├── runtime/                  # Scheduler, workers, SQLite and application logic
+│   ├── agents/                   # Prompts, surveillance and alert logic
+│   ├── models/                   # Model loaders and research utilities
+│   ├── data/                     # Schemas, disease definitions and synthetic generator
+│   └── utils/                    # Statistical anomaly detection
+├── configs/                      # Model and surveillance configuration
+├── scripts/                      # Provisioning, validation, benchmarks and training
+├── tests/                        # Python runtime and API tests
+├── data/                         # Local SQLite and synthetic regression fixtures
+├── models/                       # Local model artifacts (weights ignored by Git)
+└── docs/                         # Setup, validation evidence and remaining gates
 ```
 
-## Web dashboard
+## Native application
 
-The frontend is a Bun-managed Next.js application. It uses shadcn-style UI
-primitives and connects to the FastAPI service through `NEXT_PUBLIC_API_URL`.
+Start FastAPI, then build and open the SwiftUI app. No Node, Bun or browser is required.
 
-```bash
-cd frontend
-bun install
-NEXT_PUBLIC_API_URL=http://localhost:8000 bun run dev
+```sh
+.venv-apple/bin/python -m src.api.app
 ```
 
-Available workflows include the surveillance overview, active alerts,
-encounter intake, and district situation reports. The frontend intentionally
-shows API connection errors instead of substituting fabricated surveillance
-data.
+In another terminal:
+
+```sh
+bash native/App/bundle.sh
+open native/App/dist/EpiCast.app
+```
+
+The native app provides surveillance overview, active alerts, encounter intake
+and district situation reports. See [the native UI guide](docs/native-ui.md)
+for connection settings, model readiness, capture permissions and validation limits.
 
 ---
 
