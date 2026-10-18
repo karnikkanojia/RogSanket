@@ -91,6 +91,7 @@ struct Job<Result: Decodable & Sendable>: Decodable, Sendable {
     var isTerminal: Bool { ["succeeded", "failed", "cancelled"].contains(status) }
 }
 struct Health: Decodable, Sendable {
+    let server_backend: String?
     let status: String
     let initialized: Bool
     let release_validated: Bool

@@ -2,7 +2,7 @@
 
 ## Status
 
-The canonical API, process-isolated worker, durable storage, background jobs,
+The canonical Swift API, process-isolated worker, durable storage, background jobs,
 native modality inputs, and SwiftUI client are implemented. The MLX Python
 and experimental Swift workers use pinned library interfaces. Model quality,
 multimodal compatibility, sustained memory use, and throughput are **not yet
@@ -16,7 +16,8 @@ overhead. Use optional remote 27B or local 4B report generation.
 
 ```bash
 ./setup_local.sh
-EPICAST_ARTIFACT=/absolute/path/to/verified-4b .venv-apple/bin/python -m src.api.app
+bash native/Server/build.sh
+EPICAST_ARTIFACT=/absolute/path/to/verified-4b ./run_local.sh
 ```
 
 In another terminal:
@@ -45,14 +46,17 @@ Configuration:
 | `EPICAST_HEAR_ARTIFACT` | Verified HeAR waveform ONNX export and classifier |
 | `EPICAST_REMOTE_27B_URL` | Optional OpenAI-compatible chat-completions URL |
 | `EPICAST_REMOTE_TOKEN` | Optional authorization token; never persisted |
-| `EPICAST_ALLOWED_ORIGINS` | Comma-separated browser origins |
+| `EPICAST_PYTHON` | Absolute inference worker Python executable; auto-detects local venv |
+| `EPICAST_PORT` | Native server port; default 8000 on localhost |
+| `EPICAST_ROOT` | Repository/config root; set by `run_local.sh` |
 | `EPICAST_BACKEND` | `mlx` by default; `swift` only after native parity |
 | `EPICAST_SWIFT_WORKER` | Absolute native worker executable when enabled |
 
 Bind to localhost by default. LAN deployment requires authentication and TLS at
 the deployment boundary. The RunPod handler is a transport adapter, configured
 with `EPICAST_API_URL`. It no longer loads its own duplicate model stack.
-The former Flask launcher starts the same FastAPI API on port 8000.
+The compatibility launcher starts the Swift API on port 8000. FastAPI remains an
+explicit rollback/reference option. See [Swift server migration](swift-server.md).
 
 ## Provisioning and reference evidence
 
@@ -160,7 +164,7 @@ swift build --package-path native/Worker -c release -j 2
 The SwiftUI app provides all four surveillance workflows with native navigation, charts,
 encounter tables, alert evidence, report export and connection settings. See
 [native UI setup and parity](native-ui.md). It uses the canonical API for intake, transcript review,
-media imports, microphone dictation, camera photos, dashboard, alerts, cancellable jobs, and reports. FastAPI remains
+media imports, microphone dictation, camera photos, dashboard, alerts, cancellable jobs, and reports. The Swift server is
 the only database writer. Start the API separately. This is a development
 executable. Use `bash native/App/bundle.sh` to create an ad-hoc signed app bundle
 with camera/microphone usage descriptions. Developer ID signing, notarization,
@@ -174,14 +178,15 @@ process before starting another. Enable `swift` only after artifact-specific
 text, image, tokenizer, memory, and cancellation parity. The native manifest
 requires `swift_parity_passed: true`; no automatic promotion occurs.
 
-Do not port surveillance math or database ownership until Python/Swift fixture
-parity passes. The browser client has been retired. Core ML auxiliary conversion and
-removal of Python are subsequent gates, not current runtime claims.
+Surveillance and database ownership have moved to Swift after Python fixture
+parity checks. The browser client is retired. Core ML auxiliary conversion and
+removal of Python inference remain subsequent gates.
 
 ## Verification and rollback
 
 ```bash
 .venv/bin/python -m pytest tests -q
+swift test --package-path native/Server
 swift test --package-path native/App
 .venv/bin/python scripts/evaluate_runtime.py --reference reference-results.json
 .venv/bin/python scripts/benchmark_runtime.py --samples 100 --soak-seconds 1800
@@ -232,7 +237,7 @@ HF_HUB_DISABLE_XET=1 .venv/bin/python scripts/provision_mlx.py
 The probe uses synthetic text, runs offline, and records one cold and three warm
 extractions, schema validity, timing, and memory. Add `--image /absolute/path`
 for a nonclinical vision smoke test. A smoke test does not establish checkpoint
-parity or clinical accuracy. Both parity flags remain false; FastAPI and the Swift
+parity or clinical accuracy. Both parity flags remain false; the Swift server and native
 worker continue to reject this artifact for production use. The explicit probe
 flag permits experimental execution while retaining checksum validation.
 

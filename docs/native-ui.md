@@ -2,8 +2,8 @@
 
 SwiftUI is the supported UI. The four former Next.js routes have native
 counterparts, and the browser client has been removed. No Node or browser is needed.
-FastAPI and the isolated model worker remain
-separate processes; this change does not move database or inference ownership.
+The Swift application server and isolated model worker run as separate processes.
+The server owns SQLite; the worker owns model execution.
 The API contracts remain available to native clients and tools.
 
 ## Build and launch
@@ -12,7 +12,8 @@ Requires macOS 14 or later and the Xcode Swift toolchain.
 
 ```sh
 # In the repository root, after the Python environment is provisioned:
-.venv/bin/python -m src.api.app
+bash native/Server/build.sh
+./run_local.sh
 ```
 
 In another terminal:
@@ -25,7 +26,7 @@ open native/App/dist/EpiCast.app
 The bundle is ad-hoc signed for local development. It is not Developer ID signed
 or notarized. Camera and microphone usage descriptions are included. macOS asks
 for capture permission on first use; imported files remain available as an
-alternative. Start FastAPI separately. No model downloads or server launches
+alternative. Start EpiCast Server separately. No model downloads or server launches
 occur when opening the app.
 
 The default API address is `http://127.0.0.1:8000`. Connection Settings supports
@@ -66,7 +67,7 @@ retrying. There is no idempotency-key contract in the existing API.
 Overview, health and alert refreshes remain available during inference. Closing
 or changing a view does not resubmit or cancel a job. The app does not promise
 server-side cancellation for `/transcribe`, whose API has no job cancellation
-contract. Closing the app does not stop FastAPI; an accepted server job may
+contract. Closing the app does not stop EpiCast Server; an accepted server job may
 continue. Do not close the app to cancel inference; use Cancel and wait for
 confirmation instead.
 
@@ -103,3 +104,7 @@ still subject to artifact parity gates. ASR, images and cough remain unavailable
 until their artifacts pass validation. Live microphone/camera capture, calibrated
 clinical quality, notarization and automated backend supervision remain separate
 validation/distribution work.
+
+The default application server is now Swift. The retained FastAPI implementation
+is a migration reference and rollback option. Both expose the same application
+API; see [Swift server migration](swift-server.md).

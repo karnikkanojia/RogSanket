@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Compatibility launcher. FastAPI is the only application/model owner."""
+"""Compatibility entrypoint for the native Swift application server."""
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("src.api.app:app", host="127.0.0.1", port=8000, workers=1)
+    import os
+    from pathlib import Path
+    import sys
+    launcher = str(Path(__file__).resolve().parent / "run_local.sh")
+    os.execv(launcher, [launcher, *sys.argv[1:]])

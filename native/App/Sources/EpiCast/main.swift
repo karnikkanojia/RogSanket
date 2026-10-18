@@ -93,7 +93,7 @@ struct ConnectionSettings: View {
             Section("Local server") {
                 TextField("API address", text: $address)
                     .textFieldStyle(.roundedBorder)
-                Text("Start FastAPI on this Mac, then connect. Only localhost addresses are accepted.")
+                Text("Start EpiCast Server on this Mac, then connect. Only localhost addresses are accepted.")
                     .font(.caption).foregroundStyle(.secondary)
                 Button(applying ? "Connecting…" : "Apply and reconnect") {
                     applying = true; error = ""
@@ -108,6 +108,7 @@ struct ConnectionSettings: View {
             }
             if let health = workspace.health {
                 Section("Model availability") {
+                    LabeledContent("Application server", value: health.server_backend.map(readable) ?? "Unspecified")
                     ForEach(["text", "transcription", "image", "cough"], id: \.self) { name in
                         LabeledContent(readable(name), value: health.artifacts_present[name] == true ? "Artifact present" : "Not provisioned")
                     }

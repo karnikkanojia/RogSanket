@@ -3,7 +3,7 @@
 ## Verified on October 18, 2026
 
 - Development hardware: Apple M1, 8 GB unified memory, native ARM64 Python 3.14.
-- 26 model-free tests pass: SQLite durability/privacy, bounded queue, process
+- 29 model-free Python tests pass: SQLite durability/privacy, bounded queue, process
   cancellation, timeout/crash recovery, schema retry, aggregate-only remote
   reporting, local fallback, offline routing, report cache, stable alert IDs,
   artifact checksums, and explicit missing-model failures.
@@ -42,6 +42,17 @@ The inherited synthetic evaluation labels contain contradictions. Row 25 labels
 an alert patient with mild dehydration as critical and adds unsupported history.
 Clinical label review is required before accuracy scores can gate promotion.
 
+## Native server migration
+
+The native server implements the application routes, SQLite storage, surveillance,
+jobs, report orchestration and inference scheduling. Eighteen Swift server tests
+and 38 model-free HTTP checks pass, including all-syndrome Python parity,
+statistics, cancellation, crash recovery, writer exclusion, remote aggregate-only
+reporting, redirect fallback and a real missing-artifact rejection. The worst of
+20 health requests during synthetic blocked inference in the release HTTP check
+was under 1 ms. This is
+not a production p95 or model benchmark. See `docs/swift-server.md`.
+
 ## Release gates still open
 
 No verified MedGemma 1.5 artifact, MedASR reference fixtures, MedSigLIP reference
@@ -56,14 +67,16 @@ performance evaluation; 30-minute memory soak; 512-token report latency; native
 worker model parity; live camera/microphone hardware behavior; Developer ID
 signing, notarization and packaged backend supervision.
 
-Core ML promotion and transfer of surveillance/database ownership to Swift are
-intentionally withheld until their prerequisite parity gates pass. Python remains
-the only storage owner and the default model worker. No inference speedup,
+The Swift server now owns application routes, surveillance and SQLite after
+Python fixture and HTTP parity checks. Python remains the default model worker.
+Core ML promotion is withheld until its model parity gates pass. No inference speedup,
 clinical performance, or completed all-modality release is claimed.
 
 ## Compatibility changes
 
-FastAPI on port 8000 is canonical. The old Flask launcher now starts it. The old
+The Swift server on port 8000 is canonical. The compatibility launcher starts it.
+FastAPI remains available explicitly for rollback/reference tests. A shared writer
+lease prevents both servers from owning the same database. The old
 RunPod script is a transport adapter requiring `EPICAST_API_URL`, not a CUDA model
 server. Legacy Flask `/v1/*`, RunPod `extract`/`fuse`, synthetic spectrogram output,
 and implicit demo modality responses are removed. Existing API endpoint

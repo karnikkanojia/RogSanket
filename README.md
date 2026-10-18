@@ -8,7 +8,7 @@
 
 ## Current implementation: Apple Silicon
 
-SwiftUI is the application UI, backed by FastAPI, a process-isolated MLX worker
+SwiftUI is the application UI, backed by a Swift server, a process-isolated MLX worker
 and SQLite. The retired Next.js client has been removed. See
 [native UI setup](docs/native-ui.md). The development M1 has **8 GB unified
 memory**. Local operation targets a verified four-bit 4B artifact; local 27B is
@@ -102,9 +102,10 @@ EpiCast is an **agentic disease surveillance system** that transforms unstructur
 epicast/
 ├── native/
 │   ├── App/                      # SwiftUI macOS application
+│   ├── Server/                   # Swift application server and SQLite owner
 │   └── Worker/                   # Experimental MLX Swift inference worker
 ├── src/
-│   ├── api/                      # Canonical FastAPI service
+│   ├── api/                      # FastAPI rollback/reference service
 │   ├── runtime/                  # Scheduler, workers, SQLite and application logic
 │   ├── agents/                   # Prompts, surveillance and alert logic
 │   ├── models/                   # Model loaders and research utilities
@@ -120,10 +121,11 @@ epicast/
 
 ## Native application
 
-Start FastAPI, then build and open the SwiftUI app. No Node, Bun or browser is required.
+Build and start the Swift server, then open SwiftUI. No Node, Bun or browser is required.
 
 ```sh
-.venv-apple/bin/python -m src.api.app
+bash native/Server/build.sh
+./run_local.sh
 ```
 
 In another terminal:
@@ -187,12 +189,14 @@ covering WHO's priority syndromic surveillance categories:
 
 ```bash
 ./setup_local.sh
+bash native/Server/build.sh
 # After provisioning and reference validation:
-EPICAST_ARTIFACT=/absolute/verified/model .venv-apple/bin/python -m src.api.app
+EPICAST_ARTIFACT=/absolute/verified/model ./run_local.sh
 ```
 
 Use [the runtime guide](docs/apple-silicon.md) for modality artifacts, the native
-client, background jobs, and validation. CUDA training uses a separate environment
+client, background jobs, and validation. See [the Swift server guide](docs/swift-server.md)
+for worker isolation, SQLite compatibility and rollback. CUDA training uses a separate environment
 with `requirements-training.txt`.
 
 ---

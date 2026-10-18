@@ -44,7 +44,7 @@ models silently. This command is a deployment candidate, not a verified image.
 
 ## Connect the Mac
 
-Set these variables in the shell that starts FastAPI, with the token entered
+Set these variables in the shell that starts EpiCast Server, with the token entered
 locally rather than pasted into chat:
 
 ```sh

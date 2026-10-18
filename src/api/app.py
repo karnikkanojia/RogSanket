@@ -1,4 +1,4 @@
-"""Canonical EpiCast API. Heavy model execution is isolated from the event loop."""
+"""FastAPI rollback/reference service. The default application server is Swift."""
 import asyncio
 import base64
 from contextlib import asynccontextmanager

@@ -46,7 +46,7 @@ actor APIClient {
         catch {
             let message = method == "POST"
                 ? "The server response was lost. Check surveillance records before retrying; the server may have accepted the request."
-                : "Cannot reach the local server. Check its address and that FastAPI is running."
+                : "Cannot reach the local server. Check its address and that EpiCast Server is running."
             throw APIError(message: message)
         }
         guard let http = response as? HTTPURLResponse else { throw APIError(message: "Invalid server response.") }

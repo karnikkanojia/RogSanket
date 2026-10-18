@@ -12,6 +12,17 @@ class Store(SurveillanceDatabase):
         super().__init__()
         if path != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
+        # Shared with the native server. Keep one storage owner during migration.
+        self._lease = None
+        if path != ":memory:":
+            import fcntl
+            self._lease = open(str(Path(path).resolve()) + ".writer.lock", "a")
+            try:
+                fcntl.flock(self._lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError:
+                self._lease.close()
+                self._lease = None
+                raise RuntimeError("Another server owns this database. Stop it before starting this server.") from None
         self.lock = RLock()
         self.connection = sqlite3.connect(path, check_same_thread=False)
         self.connection.execute("PRAGMA journal_mode=WAL")
@@ -59,3 +70,6 @@ class Store(SurveillanceDatabase):
 
     def close(self):
         self.connection.close()
+        if self._lease is not None:
+            self._lease.close()
+            self._lease = None

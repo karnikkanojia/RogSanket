@@ -48,3 +48,6 @@ models/medgemma-1.5-4b-reference/
 processor-parity-results.json
 
 remote-probe-results.json
+
+*.sqlite3.writer.lock
+server-migration-results.json

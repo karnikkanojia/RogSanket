@@ -220,8 +220,26 @@ class Worker:
         return getattr(self, operation)(request)
 
 
+
+def watch_parent():
+    """Exit if a supervising native server dies during a long model request."""
+    import os
+    import threading
+    parent = os.getenv("EPICAST_PARENT_PID")
+    if not parent:
+        return
+    expected = int(parent)
+    def monitor():
+        while True:
+            if os.getppid() != expected:
+                os._exit(70)
+            time.sleep(0.5)
+    threading.Thread(target=monitor, name="epicast-parent", daemon=True).start()
+
+
 def main(settings=None):
     from .config import Settings
+    watch_parent()
     worker = Worker(settings or Settings.from_env())
     # Third-party progress output must never corrupt protocol stdout.
     output = sys.stdout

@@ -5,16 +5,17 @@ Updated October 18, 2026.
 EpiCast is a research surveillance prototype. Generated text is a draft requiring
 qualified review. This repository does not establish clinical effectiveness.
 
-The SwiftUI app sends narratives and selected media to the local FastAPI service.
+The SwiftUI app sends narratives and selected media to the local Swift service.
 Connection Settings accepts only localhost addresses, so its inputs stay on the
 same Mac. Inference runs in a separate local worker. This application does not
 claim UI-side or phone-side model inference.
 
-The local service stores structured signals, district/facility, encounter time,
+The Swift server stores structured signals, district/facility, encounter time,
 model provenance, report jobs, and cached draft reports in SQLite. Raw narratives,
 patient coordinates, audio, and images are not persisted by this service.
 Temporary image files created by the experimental Swift worker are removed after
-the task. Crashes may require operator cleanup of OS temporary storage. Inputs
+the task. Crashes may require operator cleanup of OS temporary storage. A shared writer lease prevents Swift and the retained FastAPI rollback service
+from writing the same database simultaneously. Inputs
 remain in process memory while requests execute. Client-selected originals remain
 under the user's control.
 

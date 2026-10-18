@@ -1,4 +1,4 @@
-"""Application workflows shared by web, RunPod adapter, and native clients."""
+"""Python application reference retained for rollback and migration fixtures."""
 import asyncio
 import hashlib
 import json

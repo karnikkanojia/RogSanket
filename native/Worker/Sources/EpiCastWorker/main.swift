@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 import CryptoKit
 import MLXVLM
 import MLXLMCommon
@@ -50,6 +51,14 @@ struct NativeWorker {
     }
 
     static func main() async {
+        if let text = ProcessInfo.processInfo.environment["EPICAST_PARENT_PID"], let parent = Int32(text) {
+            Task.detached {
+                while true {
+                    if getppid() != parent { Darwin._exit(70) }
+                    try? await Task.sleep(for: .milliseconds(500))
+                }
+            }
+        }
         var model: ModelContainer?
         var manifest: Manifest?
         let output = FileHandle.standardOutput

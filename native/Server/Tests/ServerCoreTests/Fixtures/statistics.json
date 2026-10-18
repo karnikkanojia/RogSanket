@@ -1,0 +1,244 @@
+[
+  {
+    "counts": [],
+    "mean": 0.0,
+    "cusum": {
+      "alarm": false,
+      "cusum_values": [],
+      "alarm_index": null,
+      "current_cusum": 0.0
+    },
+    "ears": {
+      "alarm": false,
+      "z_scores": [],
+      "message": "Need at least 8 data points"
+    },
+    "poisson": {
+      "significant": false,
+      "p_value": 1.0,
+      "ratio": 0.0,
+      "excess": 0,
+      "critical_value": 1
+    }
+  },
+  {
+    "counts": [
+      0
+    ],
+    "mean": 0.0,
+    "cusum": {
+      "alarm": false,
+      "cusum_values": [
+        0.0
+      ],
+      "alarm_index": null,
+      "current_cusum": 0.0
+    },
+    "ears": {
+      "alarm": false,
+      "z_scores": [],
+      "message": "Need at least 8 data points"
+    },
+    "poisson": {
+      "significant": false,
+      "p_value": 1.0,
+      "ratio": 0.0,
+      "excess": 0,
+      "critical_value": 1
+    }
+  },
+  {
+    "counts": [
+      2,
+      2,
+      3,
+      2,
+      1,
+      2,
+      2,
+      14
+    ],
+    "mean": 2.0,
+    "cusum": {
+      "alarm": true,
+      "cusum_values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        9.878679656440358
+      ],
+      "alarm_index": 7,
+      "current_cusum": 9.878679656440358
+    },
+    "ears": {
+      "alarm": true,
+      "z_scores": [
+        12.0
+      ],
+      "latest_z": 12.0,
+      "alarm_periods": [
+        7
+      ]
+    },
+    "poisson": {
+      "significant": true,
+      "p_value": 2.9305696371153503e-08,
+      "ratio": 7.0,
+      "excess": 12.0,
+      "critical_value": 7
+    }
+  },
+  {
+    "counts": [
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      20,
+      22,
+      35
+    ],
+    "mean": 8.2,
+    "cusum": {
+      "alarm": true,
+      "cusum_values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        7.5046536810170945,
+        17.00930736203419,
+        39.51396104305128
+      ],
+      "alarm_index": 9,
+      "current_cusum": 39.51396104305128
+    },
+    "ears": {
+      "alarm": true,
+      "z_scores": [
+        0.0,
+        15.0,
+        2.620553679530642,
+        3.248196815278063
+      ],
+      "latest_z": 3.248196815278063,
+      "alarm_periods": [
+        8,
+        10
+      ]
+    },
+    "poisson": {
+      "significant": true,
+      "p_value": 3.3060491043485522e-12,
+      "ratio": 4.27,
+      "excess": 26.8,
+      "critical_value": 17
+    }
+  },
+  {
+    "counts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "mean": 0.0,
+    "cusum": {
+      "alarm": false,
+      "cusum_values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "alarm_index": null,
+      "current_cusum": 0.0
+    },
+    "ears": {
+      "alarm": false,
+      "z_scores": [
+        0.0,
+        1.0
+      ],
+      "latest_z": 1.0,
+      "alarm_periods": []
+    },
+    "poisson": {
+      "significant": true,
+      "p_value": 0.0,
+      "ratio": "Infinity",
+      "excess": 1,
+      "critical_value": 1
+    }
+  },
+  {
+    "counts": [
+      1000,
+      1000,
+      1000,
+      1000,
+      1000,
+      1000,
+      1000,
+      1000,
+      1100
+    ],
+    "mean": 1000.0,
+    "cusum": {
+      "alarm": false,
+      "cusum_values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        52.56583509747431
+      ],
+      "alarm_index": null,
+      "current_cusum": 52.56583509747431
+    },
+    "ears": {
+      "alarm": true,
+      "z_scores": [
+        0.0,
+        100.0
+      ],
+      "latest_z": 100.0,
+      "alarm_periods": [
+        8
+      ]
+    },
+    "poisson": {
+      "significant": true,
+      "p_value": 0.0009626304058665588,
+      "ratio": 1.1,
+      "excess": 100.0,
+      "critical_value": 1075
+    }
+  }
+]
